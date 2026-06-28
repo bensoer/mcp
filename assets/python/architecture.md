@@ -2,13 +2,14 @@
 languages: 
     - python
 file_types:
-    - *.py
+    - "*.py"
 priority: required
 related_resources:
     - python/syntax
+description: "Best practices for code organisation and application architecture"
 ---
 
-# Python Coding General Practices
+# Python Coding Architecture Practices
 Best practices for code organisation and application architecture
 
 - PREFER Composition over Inheritance

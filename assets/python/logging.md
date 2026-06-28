@@ -2,10 +2,11 @@
 languages: 
     - python
 file_types:
-    - *.py
+    - "*.py"
 priority: required
 related_resources:
     - python/syntax
+description: "Standards, settings and practices for setting up and configuring logging in any python project."
 ---
 
 # Python Logging Standards
@@ -17,10 +18,13 @@ Standards, settings and practices for setting up and configuring logging in any 
 
 - ALWAYS Initialise logger in every class in the constructor
 - ALWAYS initialise a logger in the class, even if it is never used and even if it contradicts least privilege principal. Loggers are ALWAYS a private class variable.
+
 Example:
 ```python
+import logging
+
 class MyExampleClass():
-    def __init__(self):
+    def __init__(self) -> None:
         self._logger = logging.logger(__class__.__name__)
 ```
 - NEVER instantiate logger name as `self.__class__.__name__` like:
@@ -32,11 +36,11 @@ logging.logger(self.__class__.__name__) # WRONG
 ## Logging Levels
 
 Support and configure the following logging levels
-- DEBUG: Temporary troubleshooting, verbose output details for debugging
-- INFO: Standard output
-- WARNING: Issue, but not necessarily a problem
-- ERROR: Error, recovery is possible
-- CRITICAL: Error, recovery is not possible. Application termination
+- `DEBUG`: Temporary troubleshooting, verbose output details for debugging
+- `INFO`: Standard output
+- `WARNING`: Issue, but not necessarily a problem
+- `ERROR`: Error, recovery is possible
+- `CRITICAL`: Error, recovery is not possible. Application termination
 
 ## Output Format
 - ALWAYS output in JSON format
