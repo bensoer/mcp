@@ -3,6 +3,8 @@ module mcp
 go 1.25.0
 
 require (
+	github.com/BurntSushi/toml v0.3.1 // indirect
+	github.com/adrg/frontmatter v0.2.0 // indirect
 	github.com/google/jsonschema-go v0.4.3 // indirect
 	github.com/modelcontextprotocol/go-sdk v1.6.1 // indirect
 	github.com/segmentio/asm v1.1.3 // indirect
@@ -12,4 +14,5 @@ require (
 	go.uber.org/zap v1.28.0 // indirect
 	golang.org/x/oauth2 v0.35.0 // indirect
 	golang.org/x/sys v0.41.0 // indirect
+	gopkg.in/yaml.v2 v2.3.0 // indirect
 )
