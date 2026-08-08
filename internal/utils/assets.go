@@ -9,6 +9,7 @@ type AssetsFinder interface {
 	GetAssetPath(assetName string) string
 	GetAssetFolderRoot() string
 	GetAssetContents(assetPathInsideFolder string) ([]byte, error)
+	GetAllAssetPaths() ([]string, error)
 }
 
 type AssetsFinderImpl struct {
@@ -31,4 +32,28 @@ func (a *AssetsFinderImpl) GetAssetFolderRoot() string {
 
 func (a *AssetsFinderImpl) GetAssetContents(assetPathInsideFolder string) ([]byte, error) {
 	return os.ReadFile(a.GetAssetPath(assetPathInsideFolder))
+}
+
+func (a *AssetsFinderImpl) GetAllAssetPaths() ([]string, error) {
+	var files []string
+
+	err := filepath.WalkDir(a.GetAssetFolderRoot(), func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if d.IsDir() {
+			return nil
+		}
+
+		rel, err := filepath.Rel(a.GetAssetFolderRoot(), path)
+		if err != nil {
+			return err
+		}
+
+		files = append(files, rel)
+		return nil
+	})
+
+	return files, err
 }
