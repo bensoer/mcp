@@ -3,6 +3,9 @@ package internal
 import (
 	"bytes"
 	"context"
+	"fmt"
+	"os"
+
 	"mcp/internal/models"
 	"mcp/internal/utils"
 
@@ -10,8 +13,12 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
-func BoostrapServer() (*mcp.Server, error) {
-	assetFolderRoot := "assets"
+func BootstrapServer() (*mcp.Server, error) {
+	assetFolderRoot := os.Getenv("MCP_ASSET_ROOT")
+	if assetFolderRoot == "" {
+		assetFolderRoot = "assets"
+	}
+
 	aff := utils.NewAssetsFinder(&assetFolderRoot)
 	assetPaths, err := aff.GetAllAssetPaths()
 	if err != nil {
@@ -26,13 +33,21 @@ func BoostrapServer() (*mcp.Server, error) {
 	for _, assetPath := range assetPaths {
 		contents, err := aff.GetAssetContents(assetPath)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to read asset %s: %w", assetPath, err)
 		}
 
 		var metaData models.FrontMatter
 		_, err = frontmatter.Parse(bytes.NewReader(contents), &metaData)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to parse frontmatter for asset %s: %w", assetPath, err)
+		}
+
+		if metaData.URI == "" {
+			return nil, fmt.Errorf("asset %s is missing required frontmatter field: uri", assetPath)
+		}
+
+		if metaData.Name == "" {
+			return nil, fmt.Errorf("asset %s is missing required frontmatter field: name", assetPath)
 		}
 
 		server.AddResource(
@@ -60,41 +75,3 @@ func BoostrapServer() (*mcp.Server, error) {
 
 	return server, nil
 }
-
-// 	pythonResourceService := resources.NewPythonResourceService(aff)
-
-// 	server.AddResource(
-// 		&mcp.Resource{
-// 			URI:         "standards://python/logging",
-// 			Name:        "Python Logging Standards",
-// 			Title:       "Python Logging Standards",
-// 			MIMEType:    "text/markdown",
-// 			Description: "Python Logging Standards, Formats, Syntax Expections and Examples for AI Agents",
-// 		},
-// 		pythonResourceService.GetPythonLoggingResource,
-// 	)
-
-// 	server.AddResource(
-// 		&mcp.Resource{
-// 			URI:         "standards://python/syntax",
-// 			Name:        "Python Syntax Standards",
-// 			Title:       "Python Syntax Standards",
-// 			MIMEType:    "text/markdown",
-// 			Description: "Standards for how python code should look. Naming conventions, and structure preferences",
-// 		},
-// 		pythonResourceService.GetPythonSyntaxResource,
-// 	)
-
-// 	server.AddResource(
-// 		&mcp.Resource{
-// 			URI:         "standards://python/architecture",
-// 			Name:        "Python Architecture Standards",
-// 			Title:       "Python Architecture Standards",
-// 			MIMEType:    "text/markdown",
-// 			Description: "Standards for the architectural design of Python applications, including module structure, design patterns, and best practices",
-// 		},
-// 		pythonResourceService.GetPythonArchitectureResource,
-// 	)
-
-// 	return server, nil
-// }

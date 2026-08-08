@@ -7,7 +7,7 @@ languages:
 file_types:
     - "*.*"
 priority: required
-relatedResources:
+related_resources:
     - standards://git/commit-messages
 ---
 

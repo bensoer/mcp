@@ -16,7 +16,7 @@ func main() {
 
 	//zap.S().Info("Starting MCP Server...")
 
-	server, err := internal.BoostrapServer()
+	server, err := internal.BootstrapServer()
 
 	if err != nil {
 		zap.S().Fatalf("Failed to bootstrap server: %v", err)
