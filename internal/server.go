@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"os"
 
 	"mcp/internal/models"
 	"mcp/internal/utils"
@@ -13,14 +12,8 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
-func BootstrapServer() (*mcp.Server, error) {
-	assetFolderRoot := os.Getenv("MCP_ASSET_ROOT")
-	if assetFolderRoot == "" {
-		assetFolderRoot = "assets"
-	}
-
-	aff := utils.NewAssetsFinder(&assetFolderRoot)
-	assetPaths, err := aff.GetAllAssetPaths()
+func BootstrapServer(finder utils.AssetsFinder) (*mcp.Server, error) {
+	assetPaths, err := finder.GetAllAssetPaths()
 	if err != nil {
 		return nil, err
 	}
@@ -31,7 +24,7 @@ func BootstrapServer() (*mcp.Server, error) {
 	}, nil)
 
 	for _, assetPath := range assetPaths {
-		contents, err := aff.GetAssetContents(assetPath)
+		contents, err := finder.GetAssetContents(assetPath)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read asset %s: %w", assetPath, err)
 		}
