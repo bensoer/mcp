@@ -1,18 +1,24 @@
 .DEFAULT_GOAL := build
-.PHONY: all build clean test vet fmt lint run help
+.PHONY: all build clean test coverage vet fmt lint run help
+
+SHELL := /bin/bash
 
 BINARY := mcp
 
 all: build ## Build the binary
 
 clean: ## Remove build artifacts
-	rm -rf bin
+	rm -rf bin coverage.out
 
 build: clean ## Build the binary
 	go build -o bin/$(BINARY) ./cmd
 
 test: ## Run tests
 	go test -v ./...
+
+coverage: ## Run tests with coverage report
+	go test ./internal/... ./cmd/... -coverprofile=coverage.out
+	go tool cover -func=coverage.out
 
 vet: ## Run go vet
 	go vet ./...
@@ -21,7 +27,7 @@ fmt: ## Format Go source files
 	go fmt ./...
 
 lint: vet ## Run linter
-	golangci-lint run
+	go tool golangci-lint run
 
 run: build ## Build and run the binary
 	./bin/$(BINARY)
