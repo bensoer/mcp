@@ -1,6 +1,11 @@
-# MCP Server Phase 1 Improvement Plan
+# MCP Server Multi-Phase Improvement Plan
 
-## Scope
+This document covers the full multi-phase plan for improving the MCP server code.
+Phase 1 has been implemented. Phases 2–4 are planned for future sessions.
+
+---
+
+## Phase 1 — Triage & Cleanup (IMPLEMENTED)
 
 Phase 1 focuses on triage, correctness, and cleanup — low-risk changes that remove
 dead code, fix bugs, and make the server more robust without adding new features.
@@ -88,10 +93,87 @@ in both the definition and the call site in `cmd/main.go`.
 
 ---
 
-### Out of Scope (Future Phases)
+## Phase 2 — Robustness (Planned)
 
-- **Phase 2:** Resource annotations (priority, languages, file_types), graceful
-  per-file error handling, resource templates for dynamic URI patterns
-- **Phase 3:** MCP Tools (`validate_code`, `search_standards`), MCP Prompts
-  (`summarize_standards`, `explain_violation`)
-- **Phase 4:** Expanded Makefile, tests, README updates
+Medium-risk changes that improve error handling and resource metadata.
+
+### 1. Graceful Error Handling for Individual Asset Failures
+
+**File:** `internal/server.go`
+
+Currently, if any single asset file has malformed frontmatter or can't be read,
+the entire server fails to start. Instead, log the error for that specific file
+and continue registering the rest.
+
+### 2. Surface Frontmatter Metadata as Resource Annotations
+
+**File:** `internal/server.go`
+
+The `FrontMatter` struct has `Languages`, `FileTypes`, `Priority`, and
+`RelatedResources` fields, but only `URI`, `Name`, `Description`, and `MIMEType`
+are passed to the `mcp.Resource` registration. The MCP protocol supports
+resource annotations (priority, audience/role, etc.). These should be surfaced in
+the resource definition so clients can filter and present them effectively.
+
+### 3. Convert to Resource Templates (Optional)
+
+Replace the eager-read loop with `server.AddResourceTemplate` using URIs like
+`standards://{category}/{topic}`. Defers file I/O to request time, scales better.
+
+---
+
+## Phase 3 — New Capabilities (Planned)
+
+Higher-effort changes that fundamentally transform the server's effectiveness.
+
+### 1. Add MCP Tools
+
+The README's core idea: tool endpoints that allow LLMs to validate code against
+standards. A new service would hold the logic, registered in `BootstrapServer`.
+
+- **`internal/tools/code_validator.go`** — implements
+  `NewCodeValidatorTool(assetsFinder utils.AssetsFinder, logger *zap.SugaredLogger)`
+- Tool `validate_code`: accepts `code` (string) and `language` (string), reads the
+  relevant standards from assets, returns text describing violations
+- Tool `search_standards`: accept `language`, `file_type`, `priority` params,
+  return matching standards
+- Tool `get_related_standards`: resolve `related_resources` links from
+  frontmatter given a URI
+
+### 2. Add MCP Prompts
+
+Register prompt templates in `BootstrapServer`:
+
+- `summarize_standards` — "Summarize these coding standards for language: X"
+- `explain_violation` — "Explain why this code violates the standard at: <URI>"
+- `generate_compliant_code` — "Write {language} code following these standards"
+
+---
+
+## Phase 4 — Developer Experience (Planned)
+
+### 1. Expand Makefile
+
+Add standard targets per the repo's Go practices rules:
+
+| Target | Command |
+|--------|---------|
+| `all` | calls `build` |
+| `build` | `go build -o bin/mcp ./cmd/main.go` |
+| `test` | `go test ./...` |
+| `lint` | `go vet ./...` |
+| `fmt` | `go fmt ./...` |
+| `tidy` | `go mod tidy` |
+| `run` | build and execute |
+| `clean` | remove `bin/` |
+
+### 2. Add Tests
+
+- `internal/utils/assets_test.go` — test `GetAllAssetPaths` and `GetAssetContents`
+- `internal/server_test.go` — test that `BootstrapServer` registers expected
+  resources and fails on invalid frontmatter
+
+### 3. Update README
+
+Document actual resources, URI scheme, available tools/prompts, and the
+`MCP_ASSET_ROOT` env var.
