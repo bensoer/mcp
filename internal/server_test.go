@@ -178,7 +178,7 @@ func TestBootstrapServer_Integration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("client.Connect() error: %v", err)
 	}
-	defer cs.Close()
+	defer func() { _ = cs.Close() }()
 
 	resources := make(map[string]mcp.Resource)
 	for r, err := range cs.Resources(ctx, nil) {
@@ -219,7 +219,7 @@ func TestBootstrapServer_Integration(t *testing.T) {
 
 func TestBootstrapServer_Integration_UnknownResource(t *testing.T) {
 	mock := &mockAssetsFinder{
-		paths:    []string{"greeting.md"},
+		paths: []string{"greeting.md"},
 		contents: map[string]string{
 			"greeting.md": validAssetYAML("standards://test/greeting", "Greeting"),
 		},
@@ -241,7 +241,7 @@ func TestBootstrapServer_Integration_UnknownResource(t *testing.T) {
 	if err != nil {
 		t.Fatalf("client.Connect() error: %v", err)
 	}
-	defer cs.Close()
+	defer func() { _ = cs.Close() }()
 
 	_, err = cs.ReadResource(ctx, &mcp.ReadResourceParams{URI: "standards://test/nonexistent"})
 	if err == nil {

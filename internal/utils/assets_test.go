@@ -9,7 +9,7 @@ import (
 
 func TestAssetsFinderImpl_GetAssetFolderRoot(t *testing.T) {
 	root := "testdata"
-	af := NewAssetsFinder(&root)
+	af := NewAssetsFinder(root)
 
 	got := af.GetAssetFolderRoot()
 	if got != root {
@@ -19,7 +19,7 @@ func TestAssetsFinderImpl_GetAssetFolderRoot(t *testing.T) {
 
 func TestAssetsFinderImpl_GetAssetPath(t *testing.T) {
 	root := "testdata"
-	af := NewAssetsFinder(&root)
+	af := NewAssetsFinder(root)
 
 	got := af.GetAssetPath("foo/bar.md")
 	want := filepath.Join("testdata", "foo/bar.md")
@@ -35,7 +35,7 @@ func TestAssetsFinderImpl_GetAssetContents(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	af := NewAssetsFinder(&dir)
+	af := NewAssetsFinder(dir)
 	got, err := af.GetAssetContents("test.md")
 	if err != nil {
 		t.Fatalf("GetAssetContents() error: %v", err)
@@ -47,7 +47,7 @@ func TestAssetsFinderImpl_GetAssetContents(t *testing.T) {
 
 func TestAssetsFinderImpl_GetAssetContents_NotFound(t *testing.T) {
 	dir := t.TempDir()
-	af := NewAssetsFinder(&dir)
+	af := NewAssetsFinder(dir)
 
 	_, err := af.GetAssetContents("nonexistent.md")
 	if err == nil {
@@ -57,11 +57,11 @@ func TestAssetsFinderImpl_GetAssetContents_NotFound(t *testing.T) {
 
 func TestAssetsFinderImpl_GetAllAssetPaths(t *testing.T) {
 	dir := t.TempDir()
-	os.MkdirAll(filepath.Join(dir, "sub"), 0o755)
-	os.WriteFile(filepath.Join(dir, "a.md"), []byte("a"), 0o644)
-	os.WriteFile(filepath.Join(dir, "sub", "b.md"), []byte("b"), 0o644)
+	_ = os.MkdirAll(filepath.Join(dir, "sub"), 0o755)
+	_ = os.WriteFile(filepath.Join(dir, "a.md"), []byte("a"), 0o644)
+	_ = os.WriteFile(filepath.Join(dir, "sub", "b.md"), []byte("b"), 0o644)
 
-	af := NewAssetsFinder(&dir)
+	af := NewAssetsFinder(dir)
 	got, err := af.GetAllAssetPaths()
 	if err != nil {
 		t.Fatalf("GetAllAssetPaths() error: %v", err)
@@ -83,7 +83,7 @@ func TestAssetsFinderImpl_GetAllAssetPaths(t *testing.T) {
 
 func TestAssetsFinderImpl_GetAllAssetPaths_EmptyDir(t *testing.T) {
 	dir := t.TempDir()
-	af := NewAssetsFinder(&dir)
+	af := NewAssetsFinder(dir)
 
 	got, err := af.GetAllAssetPaths()
 	if err != nil {
@@ -94,9 +94,29 @@ func TestAssetsFinderImpl_GetAllAssetPaths_EmptyDir(t *testing.T) {
 	}
 }
 
+func TestAssetsFinderImpl_GetAllAssetPaths_FiltersNonMarkdown(t *testing.T) {
+	dir := t.TempDir()
+	_ = os.WriteFile(filepath.Join(dir, "readme.md"), []byte("md"), 0o644)
+	_ = os.WriteFile(filepath.Join(dir, ".gitkeep"), []byte(""), 0o644)
+	_ = os.WriteFile(filepath.Join(dir, "notes.txt"), []byte("text"), 0o644)
+
+	af := NewAssetsFinder(dir)
+	got, err := af.GetAllAssetPaths()
+	if err != nil {
+		t.Fatalf("GetAllAssetPaths() error: %v", err)
+	}
+
+	if len(got) != 1 {
+		t.Fatalf("GetAllAssetPaths() returned %d paths, want 1: %v", len(got), got)
+	}
+	if got[0] != "readme.md" {
+		t.Errorf("GetAllAssetPaths()[0] = %q, want %q", got[0], "readme.md")
+	}
+}
+
 func TestAssetsFinderImpl_GetAllAssetPaths_NonexistentRoot(t *testing.T) {
 	root := "nonexistent_dir_abc123"
-	af := NewAssetsFinder(&root)
+	af := NewAssetsFinder(root)
 
 	_, err := af.GetAllAssetPaths()
 	if err == nil {
