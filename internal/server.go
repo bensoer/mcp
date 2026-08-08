@@ -1,9 +1,9 @@
 package internal
 
 import (
-	"bytes"
 	"context"
 	"fmt"
+	"strings"
 
 	"mcp/internal/models"
 	"mcp/internal/utils"
@@ -30,7 +30,7 @@ func BootstrapServer(finder utils.AssetsFinder) (*mcp.Server, error) {
 		}
 
 		var metaData models.FrontMatter
-		_, err = frontmatter.Parse(bytes.NewReader(contents), &metaData)
+		_, err = frontmatter.Parse(strings.NewReader(string(contents)), &metaData)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse frontmatter for asset %s: %w", assetPath, err)
 		}
@@ -43,6 +43,11 @@ func BootstrapServer(finder utils.AssetsFinder) (*mcp.Server, error) {
 			return nil, fmt.Errorf("asset %s is missing required frontmatter field: name", assetPath)
 		}
 
+		if !strings.Contains(metaData.URI, "://") {
+			return nil, fmt.Errorf("asset %s has invalid uri format %q: must include scheme (e.g., standards://category/topic)", assetPath, metaData.URI)
+		}
+
+		contentStr := string(contents)
 		server.AddResource(
 			&mcp.Resource{
 				URI:         metaData.URI,
@@ -50,14 +55,14 @@ func BootstrapServer(finder utils.AssetsFinder) (*mcp.Server, error) {
 				Title:       metaData.Name,
 				MIMEType:    "text/markdown",
 				Description: metaData.Description,
-				Size:        int64(len(contents)),
+				Size:        int64(len(contentStr)),
 			},
 			func(ctx context.Context, req *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
 				return &mcp.ReadResourceResult{
 					Contents: []*mcp.ResourceContents{
 						{
 							URI:      metaData.URI,
-							Text:     string(contents),
+							Text:     contentStr,
 							MIMEType: "text/markdown",
 						},
 					},

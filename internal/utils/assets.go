@@ -3,6 +3,7 @@ package utils
 import (
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type AssetsFinder interface {
@@ -13,10 +14,10 @@ type AssetsFinder interface {
 }
 
 type AssetsFinderImpl struct {
-	assetFolderRoot *string
+	assetFolderRoot string
 }
 
-func NewAssetsFinder(assetFolderRoot *string) AssetsFinder {
+func NewAssetsFinder(assetFolderRoot string) AssetsFinder {
 	return &AssetsFinderImpl{
 		assetFolderRoot: assetFolderRoot,
 	}
@@ -27,7 +28,7 @@ func (a *AssetsFinderImpl) GetAssetPath(assetName string) string {
 }
 
 func (a *AssetsFinderImpl) GetAssetFolderRoot() string {
-	return *a.assetFolderRoot
+	return a.assetFolderRoot
 }
 
 func (a *AssetsFinderImpl) GetAssetContents(assetPathInsideFolder string) ([]byte, error) {
@@ -43,6 +44,10 @@ func (a *AssetsFinderImpl) GetAllAssetPaths() ([]string, error) {
 		}
 
 		if d.IsDir() {
+			return nil
+		}
+
+		if !strings.HasSuffix(d.Name(), ".md") {
 			return nil
 		}
 
