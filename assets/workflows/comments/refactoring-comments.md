@@ -2,6 +2,11 @@
 uri: workflows://refactoring-comments
 name: Refactoring Comments Workflow
 description: Workflow instructions for refactoring code that contains comments. Instructions and rules to follow on how to effectively preserve comments through code changes or refactors - whether that planned or actual.
+languages:
+    - all
+file_types:
+    - "*.*"
+priority: required
 related_resources:
     - standards://comments
 ---

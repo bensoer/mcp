@@ -189,7 +189,13 @@ assets/**/*.md
   → MCP resources/list, resources/read  (served to clients)
 ```
 
-### Required frontmatter fields
+### Content returned to clients
+
+Resource read handlers return the **full file contents including YAML frontmatter**.
+This is intentional — the frontmatter block provides MCP clients with inline metadata
+(URI, name, description, related resources) that may be useful for agent context
+discovery. The frontmatter fields are also surfaced as structured resource metadata
+in the `resources/list` response.
 
 Every resource document must have a YAML frontmatter block (`--- ... ---`) with
 at minimum:

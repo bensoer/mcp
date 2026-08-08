@@ -1,5 +1,5 @@
 ---
-uri: standards://python/syntax
+uri: standards://python/architecture
 name: Python Coding Architecture Practices
 description: "Best practices for code organisation and application architecture"
 languages: 
