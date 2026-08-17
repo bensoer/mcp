@@ -178,7 +178,11 @@ func TestBootstrapServer_Integration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("client.Connect() error: %v", err)
 	}
-	defer func() { _ = cs.Close() }()
+	t.Cleanup(func() {
+		if err := cs.Close(); err != nil {
+			t.Logf("error closing client session: %v", err)
+		}
+	})
 
 	resources := make(map[string]mcp.Resource)
 	for r, err := range cs.Resources(ctx, nil) {
@@ -241,7 +245,11 @@ func TestBootstrapServer_Integration_UnknownResource(t *testing.T) {
 	if err != nil {
 		t.Fatalf("client.Connect() error: %v", err)
 	}
-	defer func() { _ = cs.Close() }()
+	t.Cleanup(func() {
+		if err := cs.Close(); err != nil {
+			t.Logf("error closing client session: %v", err)
+		}
+	})
 
 	_, err = cs.ReadResource(ctx, &mcp.ReadResourceParams{URI: "standards://test/nonexistent"})
 	if err == nil {

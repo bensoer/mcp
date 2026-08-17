@@ -269,7 +269,11 @@ func TestBootstrapServer_CallTool_DiscoverStandards(t *testing.T) {
 	if err != nil {
 		t.Fatalf("client.Connect() error: %v", err)
 	}
-	defer func() { _ = cs.Close() }()
+	t.Cleanup(func() {
+		if err := cs.Close(); err != nil {
+			t.Logf("error closing client session: %v", err)
+		}
+	})
 
 	result, err := cs.CallTool(ctx, &mcp.CallToolParams{
 		Name:      "discover_standards",
@@ -337,7 +341,11 @@ func TestBootstrapServer_CallTool_SearchStandards(t *testing.T) {
 	if err != nil {
 		t.Fatalf("client.Connect() error: %v", err)
 	}
-	defer cs.Close()
+	t.Cleanup(func() {
+		if err := cs.Close(); err != nil {
+			t.Logf("error closing client session: %v", err)
+		}
+	})
 
 	// Test 1: Search for "commit" (should match the commit messages resource)
 	result, err := cs.CallTool(ctx, &mcp.CallToolParams{
@@ -503,7 +511,11 @@ func TestBootstrapServer_CallTool_SearchWorkflows_EmptyQuery(t *testing.T) {
 	if err != nil {
 		t.Fatalf("client.Connect() error: %v", err)
 	}
-	defer cs.Close()
+	t.Cleanup(func() {
+		if err := cs.Close(); err != nil {
+			t.Logf("error closing client session: %v", err)
+		}
+	})
 
 	t.Run("MissingQuery", func(t *testing.T) {
 		// Note: The SDK doesn't enforce required fields at schema level for empty query
@@ -540,14 +552,4 @@ func TestRegisterAll(t *testing.T) {
 // Helper function to check if a string has a prefix.
 func hasPrefix(s, prefix string) bool {
 	return len(s) >= len(prefix) && s[:len(prefix)] == prefix
-}
-
-// Helper function to check if a slice contains a string.
-func contains(s []string, e string) bool {
-	for _, a := range s {
-		if a == e {
-			return true
-		}
-	}
-	return false
 }
