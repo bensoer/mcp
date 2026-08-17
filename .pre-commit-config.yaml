@@ -1,0 +1,22 @@
+repos:
+  - repo: https://github.com/golangci/golangci-lint
+    rev: v2.12.2
+    hooks:
+      - id: golangci-lint
+        args: [--timeout=3m]
+        pass_filenames: false
+
+  - repo: https://github.com/golangci/gofumpt
+    rev: v0.9.2
+    hooks:
+      - id: gofumpt
+        args: [-l]
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-merge-conflict
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-yaml
+      - id: check-added-large-files

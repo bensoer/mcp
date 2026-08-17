@@ -5,8 +5,10 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-const PRODUCTION = "production"
-const DEVELOPMENT = "development"
+const (
+	PRODUCTION  = "production"
+	DEVELOPMENT = "development"
+)
 
 // InitLogger initializes a global Zap logger.
 // Set env to "production" for JSON logs or "development" for console logs.
