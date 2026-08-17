@@ -2,17 +2,17 @@ package main
 
 import (
 	"context"
+	"os"
+
 	"mcp/internal"
 	"mcp/internal/logger"
 	"mcp/internal/utils"
-	"os"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"go.uber.org/zap"
 )
 
 func main() {
-
 	logger.InitLogger(logger.DEVELOPMENT)
 	defer zap.L().Sync() //nolint:errcheck
 
@@ -24,7 +24,6 @@ func main() {
 	}
 
 	server, err := internal.BootstrapServer(utils.NewAssetsFinder(assetFolderRoot))
-
 	if err != nil {
 		zap.S().Fatalf("Failed to bootstrap server: %v", err)
 	}
