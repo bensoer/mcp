@@ -7,8 +7,8 @@ import (
 )
 
 // RegisterAll is the canonical list of tools. Adding a new tool:
-//   1. Create the tool file with Name, Description, types, handler, and Register<Name>Bootstrap
-//   2. Append Register<Name>Bootstrap to this slice
+//  1. Create the tool file with Name, Description, types, handler, and Register<Name>Bootstrap
+//  2. Append Register<Name>Bootstrap to this slice
 var RegisterAll = []func(*mcp.Server, utils.AssetsFinder){
 	RegisterDiscoverStandardsBootstrap,
 	RegisterDiscoverWorkflowsBootstrap,

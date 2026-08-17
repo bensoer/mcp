@@ -269,7 +269,7 @@ func TestBootstrapServer_CallTool_DiscoverStandards(t *testing.T) {
 	if err != nil {
 		t.Fatalf("client.Connect() error: %v", err)
 	}
-	defer cs.Close()
+	defer func() { _ = cs.Close() }()
 
 	result, err := cs.CallTool(ctx, &mcp.CallToolParams{
 		Name:      "discover_standards",
@@ -317,9 +317,9 @@ func TestBootstrapServer_CallTool_SearchStandards(t *testing.T) {
 			"other.md",
 		},
 		contents: map[string]string{
-			"commit.md": validAssetYAML("standards://git/commit-messages", "Git Commit Messages"),
+			"commit.md":   validAssetYAML("standards://git/commit-messages", "Git Commit Messages"),
 			"workflow.md": validAssetYAML("workflows://test/foo", "Test Workflow"),
-			"other.md": validAssetYAML("standards://docs/guide", "Documentation Guide"),
+			"other.md":    validAssetYAML("standards://docs/guide", "Documentation Guide"),
 		},
 	}
 	server, err := newTestServer(mock)
