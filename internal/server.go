@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"mcp/internal/models"
+	"mcp/internal/tools"
 	"mcp/internal/utils"
 
 	"github.com/adrg/frontmatter"
@@ -69,6 +70,11 @@ func BootstrapServer(finder utils.AssetsFinder) (*mcp.Server, error) {
 				}, nil
 			},
 		)
+	}
+
+	// Register tools from the tools package
+	for _, register := range tools.RegisterAll {
+		register(server, finder)
 	}
 
 	return server, nil
