@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := build
-.PHONY: all build clean test coverage vet fmt fmt-check typecheck lint vuln check run help
+.PHONY: all build clean test coverage vet fmt fmt-check typecheck lint vuln check run run-http help
 
 SHELL := /bin/bash
 
@@ -49,6 +49,9 @@ check: fmt-check typecheck vet lint vuln ## Full verification gate
 
 run: build ## Build and run the binary
 	./bin/$(BINARY)
+
+run-http: build ## Build and serve HTTP on 127.0.0.1:8080
+	./bin/$(BINARY) -http 127.0.0.1:8080
 
 help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
