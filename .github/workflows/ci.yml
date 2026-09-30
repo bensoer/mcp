@@ -1,5 +1,12 @@
 name: CI
 
+# Runs the full validation gate from .agents/rules/validation.md
+# (fmt/fmt-check, typecheck, vet, test with -race, lint, vuln, coverage),
+# the pre-commit gate, the Python stdio end-to-end harness, and a Docker
+# build+smoke test. Jobs run in parallel; the Go gate is matrixed across the
+# declared minimum (1.26.6) and the forward-going toolchain (1.27) so both are
+# guarded. Docker buildx layer caching keeps the image job fast on repeat runs.
+
 on:
   pull_request:
     branches: [main, master]
@@ -7,20 +14,92 @@ on:
     branches: [main, master]
 
 jobs:
-  test:
+  checks:
+    name: Go gate (go ${{ matrix.go-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go-version: ["1.26.6", "1.27"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go-version }}
+          cache: true
+
+      # make check = fmt-check, typecheck, vet, lint, vuln, go test -race
+      - name: Comprehensive gate
+        run: make check
+
+      # Coverage is redundant across both toolchain versions; run once.
+      - name: Coverage report
+        if: matrix.go-version == '1.27'
+        run: make coverage
+
+  precommit:
+    name: Pre-commit gate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.26.6"
+          go-version: "1.27"
           cache: true
 
-      - run: make vet
+      - name: Install pre-commit
+        run: pipx install pre-commit
 
-      - run: make test
+      # Runs fmt/vet/test/lint/vuln via make, plus hygiene hooks
+      # (merge-conflict, end-of-file, trailing whitespace, yaml, large files).
+      - name: pre-commit run --all-files
+        run: pre-commit run --all-files
 
-      - run: make lint
+  docker:
+    name: Docker build + smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-      - run: make coverage
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: mcp:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke test
+        run: |
+          docker run -d --rm --name mcp-smoke -p 18080:8080 mcp:ci
+          # Give the server a moment to bind the port, then probe /healthz.
+          sleep 2
+          curl -fsS http://127.0.0.1:18080/healthz
+          docker stop mcp-smoke
+
+  harness:
+    name: Resource harness (stdio end-to-end)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.27"
+          cache: true
+
+      - name: Build binary
+        run: make build
+
+      # Drives the real stdio server over the real assets/ tree and asserts
+      # resources/list + a resource read round-trip.
+      - name: Run resource harness
+        run: python3 .agents/skills/test-resource-document/scripts/test_resource.py
+      - name: Read a known resource
+        run: python3 .agents/skills/test-resource-document/scripts/test_resource.py --read standards://git/commit-messages
