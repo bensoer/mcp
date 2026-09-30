@@ -94,7 +94,7 @@ Follow the conventions established by the existing standards:
 The resource is picked up on the **next server start** — the asset directory is
 walked once during `BootstrapServer()`. After creating or editing a file:
 
-1. Rebuild: `go build -o bin/mcp ./cmd` (or `make build`)
+1. Rebuild: `make build`
 2. Restart any running `bin/mcp` instance so it re-walks `assets/`.
 
 ## Checklist before finishing

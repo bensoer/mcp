@@ -109,12 +109,13 @@ new packages:
 
 ## Step 4 — Testing
 
-The test harness at `.agents/test-resource-document/scripts/test_resource.py`
+The test harness at `.agents/skills/test-resource-document/scripts/test_resource.py`
 is the primary way to verify the server works end-to-end:
 
 ```bash
 # From the project root:
-python3 .agents/test-resource-document/scripts/test_resource.py --build
+make build
+python3 .agents/skills/test-resource-document/scripts/test_resource.py
 ```
 
 This rebuilds the binary, starts the server over stdio, sends MCP JSON-RPC
@@ -127,9 +128,7 @@ When adding Go tests:
 
 ## Step 5 — Before committing
 
-- [ ] `make fmt` passes (no formatting changes)
-- [ ] `make vet` passes (no static analysis issues)
-- [ ] `make build` succeeds
-- [ ] Test harness lists all resources without errors (if resource-related changes)
+- [ ] Follow `.agents/rules/validation.md`
+- [ ] Resource harness lists resources if `assets/` changed
 - [ ] Follow `standards://git/commit-staging` — separate source, test, and doc commits
 - [ ] Follow `standards://git/commit-messages` — conventional commit format
