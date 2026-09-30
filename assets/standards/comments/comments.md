@@ -2,7 +2,7 @@
 uri: standards://comments
 name: Code Comment Preservation Standards
 description: Standards around treatment of comments in code - whether that is human or machine authored
-languages: 
+languages:
     - all
 file_types:
     - "*.*"
@@ -64,8 +64,7 @@ Examples:
 
 
 - WHEN refactoring splits a method into multiple methods or classes, ALWAYS move each comment to the new location where the code it annotates lives.
-    - NEVER leave comments behind at the old call site 
+    - NEVER leave comments behind at the old call site
     - NEVER discard comments because the refactor "reorganised" things
 
     - IF a comment annotates a block that is now spread across multiple locations, ALWAYS place the comment at the most relevant location and do not duplicate or drop it.
-

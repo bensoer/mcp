@@ -2,7 +2,7 @@
 uri: standards://skill-authoring
 name: Skill Authoring Standards
 description: Standards for creating Agent Skills (SKILL.md files) — format requirements, frontmatter rules, naming conventions, context management, specificity calibration, and script design. Applies when creating, reviewing, or refactoring agent skills. Covers the full agentskills.io specification.
-languages: 
+languages:
     - all
 file_types:
     - "*.*"

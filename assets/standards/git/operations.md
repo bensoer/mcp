@@ -2,7 +2,7 @@
 uri: standards://git/operations
 name: Git Operations Standards
 description: Operational standards for working with Git in regards to managing history, pushing and pulling changes
-languages: 
+languages:
     - all
 file_types:
     - "*.*"

@@ -2,7 +2,7 @@
 uri: standards://python/logging
 name: Python Logging Standards
 description: "Standards, settings and practices for setting up and configuring logging in any python project."
-languages: 
+languages:
     - python
 file_types:
     - "*.py"
