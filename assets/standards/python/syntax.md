@@ -2,7 +2,7 @@
 uri: standards://python/syntax
 name: Python Syntax Standards
 description: "Standards for how python code should look. Naming conventions, language structure preferences"
-languages: 
+languages:
     - python
 file_types:
     - "*.py"
@@ -123,7 +123,7 @@ def create_user(username: str, password: str, email: str, address: str, phone_nu
 
 ## Class Naming Conventions
 
-- ALWAYS Postfix classes with appropriate pattern names that match the role of the class - Factory, Singleton, Service, Repository. 
+- ALWAYS Postfix classes with appropriate pattern names that match the role of the class - Factory, Singleton, Service, Repository.
     - Example: If there should only ever be one "Settings" class instance - it should be called "SettingsSingleton"
     - Example: If a class handles business logic for registering users - it should be called "RegistrationService"
 

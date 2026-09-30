@@ -29,15 +29,14 @@ Syntax errors in a markdown file won't break the build, but confirming a clean
 build ensures nothing else is broken:
 
 ```bash
-go vet ./...   # catches Go-side issues
-go build ./... # ensures the binary compiles
+make vet
+make build
 ```
 
 ## Step 2 — Rebuild the binary
 
 ```bash
 make build
-# or: go build -o bin/mcp ./cmd
 ```
 
 This ensures `bin/mcp` is current. The server reads `assets/` from the process
@@ -113,7 +112,7 @@ messages. Common failure modes if a document is malformed:
 
 ## Checklist before finishing
 
-- [ ] `go vet` and `go build` pass with no errors
+- [ ] `make vet`, `make build`, and `pre-commit run --all-files` pass
 - [ ] Binary rebuilt (`make build`)
 - [ ] Server starts without `FATAL` errors on stderr
 - [ ] New URI appears in `resources/list` with correct metadata

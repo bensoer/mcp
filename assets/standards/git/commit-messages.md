@@ -2,7 +2,7 @@
 uri: standards://git/commit-messages
 name: Git Commit Message Standards
 description: Standards around commit messages, formats, contents, and verbosity
-languages: 
+languages:
     - all
 file_types:
     - "*.*"

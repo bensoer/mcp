@@ -2,7 +2,7 @@
 uri: standards://python/architecture
 name: Python Coding Architecture Practices
 description: "Best practices for code organisation and application architecture"
-languages: 
+languages:
     - python
 file_types:
     - "*.py"
@@ -25,7 +25,7 @@ Best practices for code organisation and application architecture
 - PREFER Dependency Injection and Inversion-of-Control patterns
 - PREFER Low Coupling and High Cohesion
 - Classes ALWAYS follow Encapsulation and Single Responsibility Principals
-- NEVER access class attributes directly UNLESS it is a DTO or @dataclass. 
+- NEVER access class attributes directly UNLESS it is a DTO or @dataclass.
 - ALWAYS implement "setters" and "getters" for variables if they are need to be accessed outside of the class.
 
 - ALWAYS implement code following Least Privelege Principal - if it can be private, make it private

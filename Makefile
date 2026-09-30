@@ -1,9 +1,10 @@
 .DEFAULT_GOAL := build
-.PHONY: all build clean test coverage vet fmt lint run help
+.PHONY: all build clean test coverage vet fmt fmt-check typecheck lint vuln check run help
 
 SHELL := /bin/bash
 
 BINARY := mcp
+GOFMT := $(shell go env GOROOT)/bin/gofmt
 
 all: build ## Build the binary
 
@@ -26,8 +27,25 @@ vet: ## Run go vet
 fmt: ## Format Go source files
 	go fmt ./...
 
+fmt-check: ## Fail if Go files are not formatted
+	@unformatted=$$($(GOFMT) -l $$(go list -f '{{.Dir}}' ./...)); \
+	if [ -n "$$unformatted" ]; then \
+		printf '%s\n' "$$unformatted"; \
+		echo "run make fmt"; \
+		exit 1; \
+	fi
+
+typecheck: ## Type-check by compiling
+	go build -o bin/$(BINARY) ./cmd
+
 lint: vet ## Run linter
 	go tool golangci-lint run
+
+vuln: ## Scan dependencies for known vulnerabilities
+	go tool govulncheck ./...
+
+check: fmt-check typecheck vet lint vuln ## Full verification gate
+	go test -race ./...
 
 run: build ## Build and run the binary
 	./bin/$(BINARY)

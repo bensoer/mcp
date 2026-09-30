@@ -2,7 +2,7 @@
 uri: standards://git/branches
 name: Git Branching Standards
 description: Rules on branch creation, branch naming conventions, pushing and PR practices
-languages: 
+languages:
     - all
 file_types:
     - "*.*"

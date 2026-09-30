@@ -2,7 +2,7 @@
 uri: standards://git/commit-staging
 name: Git Commit Staging Standards
 description: Standards on git commits. How they should be created, separated, commented and organised
-languages: 
+languages:
     - all
 file_types:
     - "*.*"

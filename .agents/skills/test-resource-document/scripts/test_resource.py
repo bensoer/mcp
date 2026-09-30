@@ -350,10 +350,12 @@ def main():
     )
     args = parser.parse_args()
 
-    # Resolve project root: scripts/ lives at .agents/test-resource-document/scripts/,
-    # so the project root is 3 parents up.
+    # Repo root is the nearest ancestor that contains go.mod.
     if args.project_root is None:
-        args.project_root = str(Path(__file__).resolve().parents[3])
+        root = Path(__file__).resolve().parent
+        while root != root.parent and not (root / "go.mod").is_file():
+            root = root.parent
+        args.project_root = str(root)
 
     if not os.path.isdir(args.project_root):
         print(

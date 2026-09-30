@@ -2,7 +2,7 @@
 uri: standards://git/pull-requests
 name: Pull Request Standards
 description: Standards for pull request titles, descriptions, and review practices. Consult when creating, updating, reviewing and maintaining pull requests.
-languages: 
+languages:
     - all
 file_types:
     - "*.*"
