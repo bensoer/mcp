@@ -8,6 +8,7 @@ import (
 	"mcp/internal/utils"
 
 	"github.com/adrg/frontmatter"
+	"github.com/golang-nlp/stopwords"
 )
 
 // ListAllMetadata walks all assets and returns metadata for every one.
@@ -51,16 +52,50 @@ func filterByPrefix(resources []ResourceMetadata, prefix string) []ResourceMetad
 	return filtered
 }
 
-// SearchMetadata searches all assets for case-insensitive partial matches.
-// Searches URI, Name, Description AND the document body.
-// Only returns resources whose URI starts with uriPrefix (e.g., "standards://").
+// stringHasAllTerms reports whether every term appears in s, case-insensitively.
+func stringHasAllTerms(s string, terms []string) bool {
+	sLower := strings.ToLower(s)
+	for _, term := range terms {
+		if !strings.Contains(sLower, strings.ToLower(term)) {
+			return false
+		}
+	}
+	return true
+}
+
+// stringHasAnyTerms reports whether any term appears in s, case-insensitively.
+func stringHasAnyTerms(s string, terms []string) bool {
+	sLower := strings.ToLower(s)
+	for _, term := range terms {
+		if strings.Contains(sLower, strings.ToLower(term)) {
+			return true
+		}
+	}
+	return false
+}
+
+// removeStopWords drops English stopwords. Comparison is case-insensitive.
+func removeStopWords(terms []string) []string {
+	var filtered []string
+	for _, term := range terms {
+		if !stopwords.IsStopWord("en", term) {
+			filtered = append(filtered, term)
+		}
+	}
+	return filtered
+}
+
+// SearchMetadata searches assets for case-insensitive matches.
+// A resource matches when any query term is in the URI, name, or description,
+// or when every remaining query term is in the body. Stopwords are removed.
+// Only resources whose URI starts with uriPrefix are returned.
 func SearchMetadata(finder utils.AssetsFinder, query string, uriPrefix string) ([]ResourceMetadata, error) {
 	assetPaths, err := finder.GetAllAssetPaths()
 	if err != nil {
 		return nil, fmt.Errorf("failed to list asset paths: %w", err)
 	}
 
-	queryLower := strings.ToLower(query)
+	queryTerms := removeStopWords(strings.Fields(strings.ToLower(query)))
 
 	var matches []ResourceMetadata
 	for _, assetPath := range assetPaths {
@@ -80,10 +115,10 @@ func SearchMetadata(finder utils.AssetsFinder, query string, uriPrefix string) (
 		}
 
 		bodyLower := strings.ToLower(string(body))
-		if strings.Contains(strings.ToLower(meta.URI), queryLower) ||
-			strings.Contains(strings.ToLower(meta.Name), queryLower) ||
-			strings.Contains(strings.ToLower(meta.Description), queryLower) ||
-			strings.Contains(bodyLower, queryLower) {
+		if stringHasAnyTerms(meta.URI, queryTerms) ||
+			stringHasAnyTerms(meta.Name, queryTerms) ||
+			stringHasAnyTerms(meta.Description, queryTerms) ||
+			stringHasAllTerms(bodyLower, queryTerms) {
 			matches = append(matches, ResourceMetadata{
 				URI:         meta.URI,
 				Name:        meta.Name,
