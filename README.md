@@ -1,22 +1,63 @@
 # mcp
-Personal MCP Server with practices, preferences and validation tooling for AI Agents
 
-# Prerequisits
-- Golang 1.24+
-- Makefile
+Personal [Model Context Protocol](https://modelcontextprotocol.io) server. It serves engineering standards and workflows to AI agents over stdio JSON-RPC.
 
-# Setup
-1. Clone repository and `cd` to project root
-2. Run `make` to build the binary
-3. Run the mcp server by executing `./bin/mcp`
+## Prerequisites
 
+- Go 1.26.6+
+- GNU Make
+- Python 3 (resource harness, stdlib only)
+- pre-commit
 
-# Ideas / Designs / Plans
-- Create resource endpoints containing documentation of all standards, practices, preferences etc
-- Create tool endpoints that allow LLM to send code samples and have it validated
-against standards, practices and preferences - acting as a guardrail that it followed everything
+## Quickstart
 
-# Developer Notes
-- https://github.com/golang-standards/project-layout
-- https://pkg.go.dev/github.com/modelcontextprotocol/go-sdk@v1.6.1/mcp#pkg-overview
-- https://modelcontextprotocol.io/docs/getting-started/intro
+```bash
+make build
+python3 .agents/skills/test-resource-document/scripts/test_resource.py
+```
+
+The binary is `./bin/mcp`. Run it from the repository root, or set `MCP_ASSET_ROOT`.
+
+## Connect a client
+
+```json
+{
+  "mcpServers": {
+    "ben-mcp": {
+      "command": "/absolute/path/to/mcp/bin/mcp",
+      "args": []
+    }
+  }
+}
+```
+
+Pi project prompts in `.agents/commands/` are loaded through `.pi/settings.json`.
+
+## Layout
+
+```
+cmd/main.go          entrypoint
+internal/            server, tools, asset walker
+assets/              markdown payload, not repo instructions
+.agents/             rules, skills, and commands for this repo
+docs/                context, architecture, decisions, plans
+```
+
+Agents changing this repository should start at [AGENTS.md](AGENTS.md).
+
+## Checks
+
+| Target | Purpose |
+|--------|---------|
+| `make build` | Compile `bin/mcp` |
+| `make test` | `go test -v ./...` |
+| `make vet` | `go vet` |
+| `make lint` | vet + golangci-lint |
+| `make vuln` | govulncheck |
+| `make fmt` | gofmt |
+| `make check` | fmt, typecheck, vet, lint, vuln, race tests |
+
+```bash
+pre-commit install
+pre-commit run --all-files
+```
