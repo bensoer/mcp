@@ -3,6 +3,7 @@
 ```mermaid
 graph TD
     Client[MCP client] <-->|stdio JSON-RPC| Main[cmd/main.go]
+    Client[MCP client] -->|streamable HTTP /mcp| Main
     Main --> Bootstrap[internal.BootstrapServer]
     Bootstrap --> Finder[AssetsFinder]
     Bootstrap --> Tools[internal/tools]
@@ -13,7 +14,7 @@ graph TD
 
 | Component | Path | Role |
 |-----------|------|------|
-| Entrypoint | `cmd/main.go` | Logger, asset root, stdio server |
+| Entrypoint | `cmd/main.go` | Logger, asset root, stdio or streamable HTTP server |
 | Bootstrap | `internal/server.go` | Register resources and tools |
 | Assets | `internal/utils/assets.go` | Walk and read `assets/` or `MCP_ASSET_ROOT` |
 | Models | `internal/models/` | YAML frontmatter |
