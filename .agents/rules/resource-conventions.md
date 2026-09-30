@@ -86,11 +86,11 @@ relatedResources:
 1. Rebuild the binary: `make build`
 2. List all resources and verify the URI appears:
    ```bash
-   python3 .agents/test-resource-document/scripts/test_resource.py
+   python3 .agents/skills/test-resource-document/scripts/test_resource.py
    ```
 3. Read the content and verify frontmatter and body are intact:
    ```bash
-   python3 .agents/test-resource-document/scripts/test_resource.py --read standards://your/uri
+   python3 .agents/skills/test-resource-document/scripts/test_resource.py --read standards://your/uri
    ```
 4. Check stderr for any `FATAL` messages (should be none).
 
