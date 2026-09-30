@@ -1,16 +1,42 @@
 repos:
-  - repo: https://github.com/golangci/golangci-lint
-    rev: v2.12.2
+  - repo: local
     hooks:
-      - id: golangci-lint
-        args: [--timeout=3m]
+      - id: fmt
+        name: fmt
+        entry: make fmt-check
+        language: system
         pass_filenames: false
-
-  - repo: https://github.com/golangci/gofumpt
-    rev: v0.9.2
-    hooks:
-      - id: gofumpt
-        args: [-l]
+        always_run: true
+      - id: typecheck
+        name: typecheck
+        entry: make typecheck
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: vet
+        name: vet
+        entry: make vet
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: lint
+        name: lint
+        entry: make lint
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: test
+        name: test
+        entry: make test
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: vuln
+        name: vuln
+        entry: make vuln
+        language: system
+        pass_filenames: false
+        always_run: true
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
