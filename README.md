@@ -1,6 +1,6 @@
 # mcp
 
-Personal [Model Context Protocol](https://modelcontextprotocol.io) server. It serves engineering standards and workflows to AI agents over stdio JSON-RPC.
+Personal [Model Context Protocol](https://modelcontextprotocol.io) server. It serves engineering standards and workflows to AI agents over stdio JSON-RPC, or streamable HTTP with `-http`.
 
 ## Prerequisites
 
@@ -29,6 +29,35 @@ The binary is `./bin/mcp`. Run it from the repository root, or set `MCP_ASSET_RO
     }
   }
 }
+```
+
+### Run over HTTP
+
+Streamable HTTP (MCP spec `2025-11-25`). No auth; TLS is outside the process.
+
+```bash
+make run-http            # builds, then serves on http://127.0.0.1:8080/mcp
+docker run --rm -p 8080:8080 mcp
+```
+
+Connect a client to `http://127.0.0.1:8080/mcp`:
+
+```bash
+pi mcp add ben-mcp --url http://127.0.0.1:8080/mcp
+claude mcp add --transport http ben-mcp http://127.0.0.1:8080/mcp
+```
+
+Pi and Claude (and any MCP host that takes a URL):
+
+```json
+{ "mcpServers": { "ben-mcp": { "url": "http://127.0.0.1:8080/mcp" } } }
+```
+
+Codex uses TOML:
+
+```toml
+[mcp_servers.ben-mcp]
+url = "http://127.0.0.1:8080/mcp"
 ```
 
 Pi project prompts in `.agents/commands/` are loaded through `.pi/settings.json`.

@@ -4,7 +4,7 @@ Index for agents working in this repository. Do not load `assets/` to learn how 
 
 ## What this repo is
 
-Go 1.26 MCP server. One binary: `bin/mcp`. Speaks stdio JSON-RPC.
+Go 1.26 MCP server. One binary: `bin/mcp`. Speaks stdio JSON-RPC unless `-http` is set.
 
 | Path | What it is | Touch it when |
 |------|------------|---------------|
