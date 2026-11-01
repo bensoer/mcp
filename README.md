@@ -37,12 +37,29 @@ The binary is `./bin/mcp`. Run it from the repository root, or set `MCP_ASSET_RO
 
 ### Run over HTTP
 
-Streamable HTTP negotiates the newest supported MCP spec, `2026-07-28`; older clients still use `initialize` through `2025-11-25`. HTTP is stateless (no session id; `GET /mcp` is 405). No auth; TLS is outside the process.
+Streamable HTTP negotiates the newest supported MCP spec, `2026-07-28`; older clients still use `initialize` through `2025-11-25`. HTTP is stateless (no session id; `GET /mcp` is 405). TLS is outside the process.
+
+Authentication is opt-in for HTTP. With `-auth <bolt-path>`, `/mcp` requires `Authorization: Bearer <api-key>` and `/register` creates a key for an email address. Without `-auth`, HTTP remains open and unauthenticated. Stdio always runs without authentication or rate limits.
 
 ```bash
 make run-http            # builds, then serves on http://127.0.0.1:8080/mcp
+./bin/mcp -http 127.0.0.1:8080 -auth ./keys.db
 docker run --rm -p 8080:8080 mcp
 ```
+
+Register a key once and save the response immediately. The plaintext key is not recoverable later.
+
+```bash
+curl -sS -X POST http://127.0.0.1:8080/register \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"user@example.com"}'
+# {"apiKey":"<64-character hex key>"}
+
+curl -H 'Authorization: Bearer <64-character hex key>' \
+  http://127.0.0.1:8080/mcp
+```
+
+HTTP rate limits are in-memory. Authenticated MCP traffic defaults to 10 requests per second per registered email; registration and unauthenticated MCP traffic default to 1 request per second per remote address. Use `-rate-limit <n>` to override both rates.
 
 Connect a client to `http://127.0.0.1:8080/mcp`:
 
@@ -72,6 +89,11 @@ The Helm chart in `charts/mcp` deploys the same HTTP server image. It enables an
 HPA with one to three replicas and uses `ClientIP` session affinity because
 MCP sessions are held in memory. Affinity is not a session guarantee: a client
 IP change or pod replacement can still interrupt a session.
+
+Chart authentication is off by default. Setting `auth.enabled=true` adds a
+`ReadWriteOnce` claim for the Bolt database, passes `-auth /data/keys.db` to
+the container, and forces one replica with the HPA disabled because Bolt's
+file lock allows only one process.
 
 ```bash
 make helm-lint  # lint and render the chart without a cluster

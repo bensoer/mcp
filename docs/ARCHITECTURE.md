@@ -15,6 +15,7 @@ graph TD
 | Component | Path | Role |
 |-----------|------|------|
 | Entrypoint | `cmd/main.go` | Logger, asset root, stdio or streamable HTTP server |
+| Authentication | `internal/auth/` | Optional Bolt-backed API keys and in-memory rate limits for HTTP |
 | Bootstrap | `internal/server.go` | Register resources and tools |
 | Assets | `internal/utils/assets.go` | Walk and read `assets/` or `MCP_ASSET_ROOT` |
 | Models | `internal/models/` | YAML frontmatter |
@@ -23,4 +24,4 @@ graph TD
 
 Resource reads return the full file, including frontmatter. New documents do not need Go changes. The server reads `assets/` once at startup.
 
-HTTP deployments in a cluster use the `charts/mcp` Helm chart and the same server binary; the chart does not introduce a second binary.
+HTTP deployments in a cluster use the `charts/mcp` Helm chart and the same server binary; the chart does not introduce a second binary. When `-auth` is set, an optional `internal/auth` wrapper sits in front of `/mcp` and also exposes `/register`; the chart mounts a PersistentVolumeClaim for the Bolt file only when `auth.enabled` is true.
