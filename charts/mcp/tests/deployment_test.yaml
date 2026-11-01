@@ -114,12 +114,18 @@ tests:
       - equal:
           path: spec.template.spec.volumes[0].persistentVolumeClaim.claimName
           value: RELEASE-NAME-mcp-keys
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[1].name
+          value: extra
+      - equal:
+          path: spec.template.spec.volumes[1].name
+          value: extra
       - lengthEqual:
           path: spec.template.spec.containers[0].volumeMounts
-          count: 1
+          count: 2
       - lengthEqual:
           path: spec.template.spec.volumes
-          count: 1
+          count: 2
 
   - it: fails when authentication is enabled with autoscaling
     set:
