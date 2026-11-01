@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"mcp/internal/utils"
@@ -61,6 +63,21 @@ priority: required
 
 Content for %s.
 `, uri, name, name, name)
+}
+
+func TestBootstrapServer_RepoAssets(t *testing.T) {
+	root := filepath.Join("..", "assets")
+	if _, err := os.Stat(root); err != nil {
+		t.Skip("repo assets not available")
+	}
+
+	server, err := BootstrapServer(utils.NewAssetsFinder(root))
+	if err != nil {
+		t.Fatalf("BootstrapServer() error: %v", err)
+	}
+	if server == nil {
+		t.Fatal("BootstrapServer() returned nil server")
+	}
 }
 
 func TestBootstrapServer_ValidAssets(t *testing.T) {
