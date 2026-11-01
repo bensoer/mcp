@@ -1,8 +1,9 @@
-package main
+package auth
 
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -10,10 +11,6 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
-
-	"mcp/internal"
-	"mcp/internal/auth"
-	"mcp/internal/utils"
 
 	"go.uber.org/zap"
 )
@@ -65,7 +62,7 @@ func TestHTTPAuthMalformedRegistrationDoesNotCreateRow(t *testing.T) {
 		{name: "wrong content type", method: http.MethodPost, contentType: "text/plain", body: `{"email":"bad@example.com"}`},
 		{name: "missing email", method: http.MethodPost, contentType: "application/json", body: `{}`},
 		{name: "empty email", method: http.MethodPost, contentType: "application/json", body: `{"email":"  "}`},
-		{name: "oversized body", method: http.MethodPost, contentType: "application/json", body: `{"email":"` + strings.Repeat("a", 1<<10) + `"}`},
+		{name: "oversized body", method: http.MethodPost, contentType: "application/json", body: `{"email":"` + strings.Repeat("a", maxRegisterBodySize) + `"}`},
 		{name: "wrong method", method: http.MethodGet, contentType: "application/json", body: `{"email":"bad@example.com"}`},
 	}
 	for _, test := range tests {
@@ -135,15 +132,7 @@ func TestHTTPAuthMCPRequiresValidBearer(t *testing.T) {
 }
 
 func TestHTTPAuthOffDoesNotExposeRegistration(t *testing.T) {
-	dir := t.TempDir()
-	if err := os.WriteFile(filepath.Join(dir, "std.md"), []byte(fixtureDoc), 0o600); err != nil {
-		t.Fatalf("write fixture: %v", err)
-	}
-	mcpServer, err := internal.BootstrapServer(utils.NewAssetsFinder(dir))
-	if err != nil {
-		t.Fatalf("BootstrapServer: %v", err)
-	}
-	server := httptest.NewServer(newMCPHandler(mcpServer))
+	server := httptest.NewServer(http.NewServeMux())
 	t.Cleanup(server.Close)
 
 	response := doRequest(t, http.MethodPost, server.URL+"/register", `{"email":"user@example.com"}`, "application/json", "")
@@ -239,22 +228,36 @@ func TestHTTPAuthRateLimitsAuthenticatedAndRegisterTraffic(t *testing.T) {
 	}
 }
 
-func newAuthTestServer(t *testing.T, rateLimit int) (*httptest.Server, *auth.Store, string) {
+func newAuthTestServer(t *testing.T, rateLimit int) (*httptest.Server, *Store, string) {
 	t.Helper()
-	dir := t.TempDir()
-	if err := os.WriteFile(filepath.Join(dir, "std.md"), []byte(fixtureDoc), 0o600); err != nil {
-		t.Fatalf("write fixture: %v", err)
-	}
-	mcpServer, err := internal.BootstrapServer(utils.NewAssetsFinder(dir))
-	if err != nil {
-		t.Fatalf("BootstrapServer: %v", err)
-	}
 	databasePath := filepath.Join(t.TempDir(), "keys.db")
-	store, err := auth.OpenDatabase(databasePath)
+	store, err := OpenDatabase(databasePath)
 	if err != nil {
 		t.Fatalf("open auth database: %v", err)
 	}
-	handler := auth.NewHandler(newMCPHandler(mcpServer), store, rateLimit, zap.NewNop().Sugar())
+	next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/healthz":
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("ok\n"))
+		case "/mcp":
+			payload := map[string]any{
+				"jsonrpc": "2.0",
+				"id":      1,
+				"result": map[string]any{
+					"resources": []map[string]any{{"uri": "standards://plan/http"}},
+				},
+			}
+			var encoded bytes.Buffer
+			_ = json.NewEncoder(&encoded).Encode(payload)
+			w.Header().Set("Content-Type", "text/event-stream")
+			w.WriteHeader(http.StatusOK)
+			_, _ = fmt.Fprintf(w, "event: message\ndata: %s\n", encoded.String())
+		default:
+			http.NotFound(w, r)
+		}
+	})
+	handler := NewHandler(next, store, rateLimit, zap.NewNop().Sugar())
 	server := httptest.NewServer(handler)
 	t.Cleanup(func() {
 		server.Close()
