@@ -22,3 +22,5 @@ graph TD
 | Payload | `assets/` | Markdown registered as resources |
 
 Resource reads return the full file, including frontmatter. New documents do not need Go changes. The server reads `assets/` once at startup.
+
+HTTP deployments in a cluster use the `charts/mcp` Helm chart and the same server binary; the chart does not introduce a second binary.

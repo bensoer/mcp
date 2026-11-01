@@ -8,6 +8,10 @@ Personal [Model Context Protocol](https://modelcontextprotocol.io) server. It se
 - GNU Make
 - Python 3 (resource harness, stdlib only)
 - pre-commit
+- Docker
+- minikube
+- Helm
+- kubectl
 
 ## Quickstart
 
@@ -61,6 +65,25 @@ url = "http://127.0.0.1:8080/mcp"
 ```
 
 Pi project prompts in `.agents/commands/` are loaded through `.pi/settings.json`.
+
+### Run the Kubernetes chart
+
+The Helm chart in `charts/mcp` deploys the same HTTP server image. It enables an
+HPA with one to three replicas and uses `ClientIP` session affinity because
+MCP sessions are held in memory. Affinity is not a session guarantee: a client
+IP change or pod replacement can still interrupt a session.
+
+```bash
+make helm-lint  # lint and render the chart without a cluster
+make e2e        # start/reuse minikube and run the in-cluster acceptance suite
+make e2e-down   # remove the release and delete only a cluster started by make e2e
+```
+
+`make e2e` leaves the cluster running. It reports how to tear down a profile
+that it started. The same target runs in GitHub Actions CI.
+
+Published GitHub Releases carry both the container image and the packaged
+Helm chart `.tgz`.
 
 ## Layout
 

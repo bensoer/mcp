@@ -37,6 +37,13 @@ pre-commit run --all-files
 | `make fmt-check` | fail if `gofmt -l` finds differences |
 | `make vuln` | `go tool govulncheck ./...` |
 | `make check` | fmt-check, typecheck, vet, lint, vuln, then `go test -race` |
+| `make helm-lint` | strict Helm lint and a default-value template render |
+| `make e2e` | build/load both images, deploy the chart to minikube, run the Helm test pod, and assert workload acceptance |
+| `make e2e-down` | uninstall the release, delete the `mcp` namespace, and delete only a minikube profile started by `make e2e` |
+
+`make e2e` requires Docker, minikube, Helm, and kubectl. It is not part of
+`make check` or pre-commit, so the default validation gate remains runnable
+without Docker. The e2e target does run in CI.
 
 There is no CLI `--help` check. The server reads stdin until EOF.
 
