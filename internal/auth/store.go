@@ -16,10 +16,6 @@ var (
 	keyBucketName   = []byte("keys")
 )
 
-// ErrEmailExists indicates that registration was attempted for an email that is
-// already registered.
-var ErrEmailExists = errors.New("email already exists")
-
 // Store persists normalized email addresses and hashes of API keys in BoltDB.
 type Store struct {
 	db *bolt.DB
