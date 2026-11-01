@@ -77,26 +77,26 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- if .Values.auth.enabled }}
+          {{- if or .Values.auth.enabled .Values.volumeMounts }}
           volumeMounts:
+            {{- if .Values.auth.enabled }}
             - name: keys
               mountPath: /data
-          {{- else }}
-          {{- with .Values.volumeMounts }}
-          volumeMounts:
+            {{- end }}
+            {{- with .Values.volumeMounts }}
             {{- toYaml . | nindent 12 }}
+            {{- end }}
           {{- end }}
-          {{- end }}
-      {{- if .Values.auth.enabled }}
+      {{- if or .Values.auth.enabled .Values.volumes }}
       volumes:
+        {{- if .Values.auth.enabled }}
         - name: keys
           persistentVolumeClaim:
             claimName: {{ include "mcp.fullname" . }}-keys
-      {{- else }}
-      {{- with .Values.volumes }}
-      volumes:
+        {{- end }}
+        {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- end }}
       {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
