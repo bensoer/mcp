@@ -94,7 +94,8 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v4
 
-
+      - name: Test Helm manifests
+        run: make helm-lint
 
       - name: Run Helm e2e
         run: make e2e
