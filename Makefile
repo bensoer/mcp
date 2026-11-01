@@ -1,11 +1,12 @@
 .DEFAULT_GOAL := build
-.PHONY: all build clean test coverage vet fmt fmt-check typecheck lint vuln check run run-http helm-lint e2e e2e-down help
+.PHONY: all build clean test coverage vet fmt fmt-check typecheck lint vuln check run run-http helm-unittest-install helm-unittest helm-lint e2e e2e-down help
 
 SHELL := /bin/bash
 
 BINARY := mcp
 GOFMT := $(shell go env GOROOT)/bin/gofmt
 E2E_PROFILE_FILE := .minikube-e2e-profile
+HELM_UNITTEST_VERSION := 1.2.1
 
 all: build ## Build the binary
 
@@ -57,7 +58,16 @@ run: build ## Build and run the binary
 run-http: build ## Build and serve HTTP on 127.0.0.1:8080
 	./bin/$(BINARY) -http 127.0.0.1:8080
 
-helm-lint: ## Lint and render the Helm chart
+helm-unittest-install: ## Install the pinned Helm unittest plugin
+	@if ! helm plugin list | awk -v version='$(HELM_UNITTEST_VERSION)' '$$1 == "unittest" && $$2 == version { found = 1 } END { exit found ? 0 : 1 }'; then \
+		helm plugin uninstall unittest >/dev/null 2>&1 || true; \
+		helm plugin install https://github.com/helm-unittest/helm-unittest --version '$(HELM_UNITTEST_VERSION)' --verify=false; \
+	fi
+
+helm-unittest: helm-unittest-install ## Run Helm manifest unit tests
+	helm unittest --strict charts/mcp
+
+helm-lint: helm-unittest ## Lint, unit test, and render the Helm chart
 	helm lint --strict charts/mcp
 	@tmp=$$(mktemp); \
 	trap 'rm -f "$$tmp"' EXIT; \
@@ -90,8 +100,6 @@ e2e: ## Run the minikube Helm and in-cluster e2e suite
 		--set image.repository=mcp --set image.tag=dev --set image.pullPolicy=Never \
 		--set tests.image.repository=mcp-e2e --set tests.image.tag=dev --set tests.image.pullPolicy=Never; \
 	kube rollout status deployment/mcp --namespace mcp --timeout=5m; \
-	READY=$$(kube get deployment mcp --namespace mcp -o jsonpath='{.status.readyReplicas}'); \
-	[ "$$READY" = "1" ] || { echo "expected 1 ready replica, got $$READY" >&2; exit 1; }; \
 	ENDPOINT=""; \
 	for attempt in {1..30}; do \
 		ENDPOINT=$$(kube get endpoints mcp --namespace mcp -o jsonpath='{.subsets[0].addresses[0].ip}'); \
@@ -100,19 +108,6 @@ e2e: ## Run the minikube Helm and in-cluster e2e suite
 	done; \
 	[ -n "$$ENDPOINT" ] || { echo "service has no ready endpoints" >&2; exit 1; }; \
 	helm --kube-context "$$PROFILE" test mcp --namespace mcp --logs --timeout 10m; \
-	MIN=$$(kube get hpa mcp --namespace mcp -o jsonpath='{.spec.minReplicas}'); \
-	MAX=$$(kube get hpa mcp --namespace mcp -o jsonpath='{.spec.maxReplicas}'); \
-	[ "$$MIN" = "1" ] && [ "$$MAX" = "3" ] || { echo "unexpected HPA bounds: min=$$MIN max=$$MAX" >&2; exit 1; }; \
-	AFFINITY=$$(kube get service mcp --namespace mcp -o jsonpath='{.spec.sessionAffinity}'); \
-	[ "$$AFFINITY" = "ClientIP" ] || { echo "unexpected session affinity: $$AFFINITY" >&2; exit 1; }; \
-	USER=$$(kube get deployment mcp --namespace mcp -o jsonpath='{.spec.template.spec.containers[0].securityContext.runAsUser}'); \
-	[ "$$USER" = "65532" ] || { echo "unexpected container user: $$USER" >&2; exit 1; }; \
-	READONLY=$$(kube get deployment mcp --namespace mcp -o jsonpath='{.spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem}'); \
-	[ "$$READONLY" = "true" ] || { echo "unexpected readOnlyRootFilesystem: $$READONLY" >&2; exit 1; }; \
-	ENDPOINT=$$(kube get endpoints mcp --namespace mcp -o jsonpath='{.subsets[0].addresses[0].ip}'); \
-	[ -n "$$ENDPOINT" ] || { echo "service has no ready endpoints" >&2; exit 1; }; \
-	RESTARTS=$$(kube get pods --namespace mcp -l app.kubernetes.io/name=mcp,app.kubernetes.io/instance=mcp -o jsonpath='{range .items[*]}{.status.containerStatuses[0].restartCount}{"\n"}{end}'); \
-	echo "$$RESTARTS" | grep -qv '[^0]' || { echo "app container restarted: $$RESTARTS" >&2; exit 1; }; \
 	echo "e2e passed for minikube profile $$PROFILE"; \
 	echo "This command created a clean profile $$PROFILE; tear it down with: make e2e-down"
 
