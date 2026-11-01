@@ -37,12 +37,14 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "mcp.serviceAccountName" . }}
-      {{- with .Values.podSecurityContext }}
+      {{- if or .Values.auth.enabled .Values.podSecurityContext }}
       securityContext:
+        {{- with .Values.podSecurityContext }}
         {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- if .Values.auth.enabled }}
-      fsGroup: 65532
+        {{- end }}
+        {{- if .Values.auth.enabled }}
+        fsGroup: 65532
+        {{- end }}
       {{- end }}
       containers:
         - name: {{ .Chart.Name }}

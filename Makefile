@@ -108,6 +108,12 @@ e2e: ## Run the minikube Helm and in-cluster e2e suite
 	done; \
 	[ -n "$$ENDPOINT" ] || { echo "service has no ready endpoints" >&2; exit 1; }; \
 	helm --kube-context "$$PROFILE" test mcp --namespace mcp --logs --timeout 10m; \
+	helm --kube-context "$$PROFILE" upgrade --install mcp-auth charts/mcp --namespace mcp-auth --create-namespace --wait --timeout 5m \
+		--set image.repository=mcp --set image.tag=dev --set image.pullPolicy=Never \
+		--set tests.image.repository=mcp-e2e --set tests.image.tag=dev --set tests.image.pullPolicy=Never \
+		--set auth.enabled=true --set autoscaling.enabled=false --set replicaCount=1; \
+	kube rollout status deployment/mcp-auth --namespace mcp-auth --timeout=5m; \
+	helm --kube-context "$$PROFILE" test mcp-auth --namespace mcp-auth --logs --timeout 10m; \
 	echo "e2e passed for minikube profile $$PROFILE"; \
 	echo "This command created a clean profile $$PROFILE; tear it down with: make e2e-down"
 
@@ -121,10 +127,14 @@ e2e-down: ## Remove the e2e release and cluster started by make e2e
 	fi; \
 	if [ -n "$$PROFILE" ]; then \
 		helm --kube-context "$$PROFILE" uninstall mcp --namespace mcp --ignore-not-found || true; \
+		helm --kube-context "$$PROFILE" uninstall mcp-auth --namespace mcp-auth --ignore-not-found || true; \
 		minikube -p "$$PROFILE" kubectl -- delete namespace mcp --ignore-not-found || true; \
+		minikube -p "$$PROFILE" kubectl -- delete namespace mcp-auth --ignore-not-found || true; \
 	else \
 		helm uninstall mcp --namespace mcp --ignore-not-found || true; \
+		helm uninstall mcp-auth --namespace mcp-auth --ignore-not-found || true; \
 		kubectl delete namespace mcp --ignore-not-found || true; \
+		kubectl delete namespace mcp-auth --ignore-not-found || true; \
 	fi; \
 	if [ -f "$(E2E_PROFILE_FILE)" ]; then \
 		minikube delete -p "$$PROFILE"; \
