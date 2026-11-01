@@ -85,6 +85,7 @@ e2e: ## Run the minikube Helm and in-cluster e2e suite
 		PROFILE=$$(minikube profile list -o json | python3 -c 'import json, sys; data = json.load(sys.stdin); print(next((p["Name"] for p in data.get("valid", []) if p.get("Status") in ("Running", "OK")), ""))'); \
 		PROFILE="$${PROFILE:-mcp}"; \
 	fi; \
+	kube() { minikube -p "$$PROFILE" kubectl -- "$$@"; }; \
 	STARTED=0; \
 	if ! profile_running "$$PROFILE"; then \
 		if profile_exists "$$PROFILE"; then \
@@ -99,37 +100,37 @@ e2e: ## Run the minikube Helm and in-cluster e2e suite
 	fi; \
 	minikube -p "$$PROFILE" addons enable metrics-server || echo "warning: metrics-server may be unavailable; continuing"; \
 	docker build -t mcp:dev .; \
-	docker build -f test/e2e/Dockerfile -t mcp-e2e:dev .; \
+	docker build --target e2e -t mcp-e2e:dev .; \
 	if ! minikube -p "$$PROFILE" image load mcp:dev mcp-e2e:dev; then \
 		echo "minikube image load failed; rebuilding images in the profile Docker environment" >&2; \
-		(eval "$$(minikube -p "$$PROFILE" docker-env --shell=bash)"; docker build -t mcp:dev .; docker build -f test/e2e/Dockerfile -t mcp-e2e:dev .); \
+		(eval "$$(minikube -p "$$PROFILE" docker-env --shell=bash)"; docker build -t mcp:dev .; docker build --target e2e -t mcp-e2e:dev .); \
 	fi; \
 	minikube -p "$$PROFILE" update-context; \
-	kubectl --context "$$PROFILE" create namespace mcp --dry-run=client -o yaml | kubectl --context "$$PROFILE" apply -f -; \
-	helm upgrade --install mcp charts/mcp --namespace mcp --wait --timeout 5m \
+	kube create namespace mcp --dry-run=client -o yaml | kube apply -f -; \
+	helm --kube-context "$$PROFILE" upgrade --install mcp charts/mcp --namespace mcp --wait --timeout 5m \
 		--set image.tag=dev --set image.pullPolicy=Never \
 		--set tests.image.repository=mcp-e2e --set tests.image.tag=dev --set tests.image.pullPolicy=Never; \
-	kubectl --context "$$PROFILE" rollout status deployment/mcp --namespace mcp --timeout=5m; \
-	READY=$$(kubectl --context "$$PROFILE" get deployment mcp --namespace mcp -o jsonpath='{.status.readyReplicas}'); \
+	kube rollout status deployment/mcp --namespace mcp --timeout=5m; \
+	READY=$$(kube get deployment mcp --namespace mcp -o jsonpath='{.status.readyReplicas}'); \
 	[ "$$READY" = "1" ] || { echo "expected 1 ready replica, got $$READY" >&2; exit 1; }; \
-	helm test mcp --namespace mcp --logs --timeout 10m; \
-	MIN=$$(kubectl --context "$$PROFILE" get hpa mcp --namespace mcp -o jsonpath='{.spec.minReplicas}'); \
-	MAX=$$(kubectl --context "$$PROFILE" get hpa mcp --namespace mcp -o jsonpath='{.spec.maxReplicas}'); \
+	helm --kube-context "$$PROFILE" test mcp --namespace mcp --logs --timeout 10m; \
+	MIN=$$(kube get hpa mcp --namespace mcp -o jsonpath='{.spec.minReplicas}'); \
+	MAX=$$(kube get hpa mcp --namespace mcp -o jsonpath='{.spec.maxReplicas}'); \
 	[ "$$MIN" = "1" ] && [ "$$MAX" = "3" ] || { echo "unexpected HPA bounds: min=$$MIN max=$$MAX" >&2; exit 1; }; \
-	AFFINITY=$$(kubectl --context "$$PROFILE" get service mcp --namespace mcp -o jsonpath='{.spec.sessionAffinity}'); \
+	AFFINITY=$$(kube get service mcp --namespace mcp -o jsonpath='{.spec.sessionAffinity}'); \
 	[ "$$AFFINITY" = "ClientIP" ] || { echo "unexpected session affinity: $$AFFINITY" >&2; exit 1; }; \
-	USER=$$(kubectl --context "$$PROFILE" get deployment mcp --namespace mcp -o jsonpath='{.spec.template.spec.containers[0].securityContext.runAsUser}'); \
+	USER=$$(kube get deployment mcp --namespace mcp -o jsonpath='{.spec.template.spec.containers[0].securityContext.runAsUser}'); \
 	[ "$$USER" = "65532" ] || { echo "unexpected container user: $$USER" >&2; exit 1; }; \
-	READONLY=$$(kubectl --context "$$PROFILE" get deployment mcp --namespace mcp -o jsonpath='{.spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem}'); \
+	READONLY=$$(kube get deployment mcp --namespace mcp -o jsonpath='{.spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem}'); \
 	[ "$$READONLY" = "true" ] || { echo "unexpected readOnlyRootFilesystem: $$READONLY" >&2; exit 1; }; \
-	ENDPOINT=$$(kubectl --context "$$PROFILE" get endpoints mcp --namespace mcp -o jsonpath='{.subsets[0].addresses[0].ip}'); \
+	ENDPOINT=$$(kube get endpoints mcp --namespace mcp -o jsonpath='{.subsets[0].addresses[0].ip}'); \
 	[ -n "$$ENDPOINT" ] || { echo "service has no ready endpoints" >&2; exit 1; }; \
-	RESTARTS=$$(kubectl --context "$$PROFILE" get pods --namespace mcp -l app.kubernetes.io/name=mcp,app.kubernetes.io/instance=mcp -o jsonpath='{range .items[*]}{.status.containerStatuses[0].restartCount}{"\n"}{end}'); \
+	RESTARTS=$$(kube get pods --namespace mcp -l app.kubernetes.io/name=mcp,app.kubernetes.io/instance=mcp -o jsonpath='{range .items[*]}{.status.containerStatuses[0].restartCount}{"\n"}{end}'); \
 	echo "$$RESTARTS" | grep -qv '[^0]' || { echo "app container restarted: $$RESTARTS" >&2; exit 1; }; \
 	echo "e2e passed for minikube profile $$PROFILE"; \
 	if [ "$$STARTED" -eq 1 ]; then \
 		echo "This command started profile $$PROFILE; tear it down with: make e2e-down"; \
-	elif [ -f "$(E2E_PROFILE_FILE)" ]; then \
+	elif [ -f "$(E2E_PROFILE_FILE)" ] && [ "$$(cat "$(E2E_PROFILE_FILE)")" = "$$PROFILE" ]; then \
 		echo "This command reused profile $$PROFILE, which an earlier make e2e started; tear it down with: make e2e-down"; \
 	else \
 		echo "This command reused profile $$PROFILE; make e2e-down will not delete it"; \
@@ -137,10 +138,20 @@ e2e: ## Run the minikube Helm and in-cluster e2e suite
 
 e2e-down: ## Remove the e2e release and cluster started by make e2e
 	@set -euo pipefail; \
-	helm uninstall mcp --namespace mcp --ignore-not-found || true; \
-	kubectl delete namespace mcp --ignore-not-found || true; \
+	PROFILE=""; \
 	if [ -f "$(E2E_PROFILE_FILE)" ]; then \
 		PROFILE=$$(cat "$(E2E_PROFILE_FILE)"); \
+	elif [ -n "$${MINIKUBE_PROFILE:-}" ]; then \
+		PROFILE="$$MINIKUBE_PROFILE"; \
+	fi; \
+	if [ -n "$$PROFILE" ]; then \
+		helm --kube-context "$$PROFILE" uninstall mcp --namespace mcp --ignore-not-found || true; \
+		minikube -p "$$PROFILE" kubectl -- delete namespace mcp --ignore-not-found || true; \
+	else \
+		helm uninstall mcp --namespace mcp --ignore-not-found || true; \
+		kubectl delete namespace mcp --ignore-not-found || true; \
+	fi; \
+	if [ -f "$(E2E_PROFILE_FILE)" ]; then \
 		minikube delete -p "$$PROFILE"; \
 		rm -f "$(E2E_PROFILE_FILE)"; \
 	fi
