@@ -57,7 +57,7 @@ ingress:
 traefik:
   ingressRoute:
     enabled: true
-    domain: mcp.local
+    domain: mcp.intra.soernet.ca
     issuer: letsencrypt-prod-cluster-issuer
     issuerKind: ClusterIssuer
 

@@ -18,5 +18,9 @@ Authentication is off unless auth.enabled is set. The server accepts /mcp reques
 {{- end }}
 
 Autoscaling is {{ if .Values.autoscaling.enabled }}enabled{{ else }}disabled{{ end }}, with {{ .Values.autoscaling.minReplicas }} to {{ .Values.autoscaling.maxReplicas }} replicas.
+{{- if .Values.traefik.ingressRoute.enabled }}
+
+Traefik routes https://{{ .Values.traefik.ingressRoute.domain }} to this release. The certificate is issued by {{ .Values.traefik.ingressRoute.issuerKind }} {{ .Values.traefik.ingressRoute.issuer }}, and the cluster must already have cert-manager and Traefik CRDs installed.
+{{- end }}
 
 The Service uses {{ .Values.service.sessionAffinity }} session affinity for {{ .Values.service.sessionAffinityTimeoutSeconds }} seconds. Sessions are held in memory: affinity keeps a client on one pod while the client IP is stable, but it does not preserve sessions when the client IP changes or the pod is replaced.

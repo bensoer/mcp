@@ -3,11 +3,14 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: {{ include "mcp.fullname" . }}-cert
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "mcp.labels" . | nindent 4 }}
 spec:
-  commonName: {{ .Values.traefik.ingressRoute.domain }}
+  commonName: {{ .Values.traefik.ingressRoute.domain | quote }}
   secretName: {{ include "mcp.fullname" . }}-cert
   dnsNames:
-    - {{ .Values.traefik.ingressRoute.domain }}
+    - {{ .Values.traefik.ingressRoute.domain | quote }}
   issuerRef:
     kind: {{ .Values.traefik.ingressRoute.issuerKind }}
     name: {{ .Values.traefik.ingressRoute.issuer }}

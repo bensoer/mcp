@@ -98,7 +98,8 @@ e2e: ## Run the minikube Helm and in-cluster e2e suite
 	minikube -p "$$PROFILE" update-context; \
 	helm --kube-context "$$PROFILE" upgrade --install mcp charts/mcp --namespace mcp --create-namespace --wait --timeout 5m \
 		--set image.repository=mcp --set image.tag=dev --set image.pullPolicy=Never \
-		--set tests.image.repository=mcp-e2e --set tests.image.tag=dev --set tests.image.pullPolicy=Never; \
+		--set tests.image.repository=mcp-e2e --set tests.image.tag=dev --set tests.image.pullPolicy=Never \
+		--set traefik.ingressRoute.enabled=false; \
 	kube rollout status deployment/mcp --namespace mcp --timeout=5m; \
 	ENDPOINT=""; \
 	for attempt in {1..30}; do \
@@ -111,7 +112,8 @@ e2e: ## Run the minikube Helm and in-cluster e2e suite
 	helm --kube-context "$$PROFILE" upgrade --install mcp-auth charts/mcp --namespace mcp-auth --create-namespace --wait --timeout 5m \
 		--set image.repository=mcp --set image.tag=dev --set image.pullPolicy=Never \
 		--set tests.image.repository=mcp-e2e --set tests.image.tag=dev --set tests.image.pullPolicy=Never \
-		--set auth.enabled=true --set autoscaling.enabled=false --set replicaCount=1; \
+		--set auth.enabled=true --set autoscaling.enabled=false --set replicaCount=1 \
+		--set traefik.ingressRoute.enabled=false; \
 	kube rollout status deployment/mcp-auth --namespace mcp-auth --timeout=5m; \
 	helm --kube-context "$$PROFILE" test mcp-auth --namespace mcp-auth --logs --timeout 10m; \
 	echo "e2e passed for minikube profile $$PROFILE"; \
