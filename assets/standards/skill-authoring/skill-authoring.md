@@ -1,42 +1,29 @@
 ---
 uri: standards://skill-authoring
 name: Skill Authoring Standards
-description: Standards for creating Agent Skills (SKILL.md files) — format requirements, frontmatter rules, naming conventions, context management, specificity calibration, and script design. Applies when creating, reviewing, or refactoring agent skills. Covers the full agentskills.io specification.
+description: "Use when creating, reviewing, or refactoring an Agent Skill. Covers SKILL.md format, descriptions, context limits, and script rules."
 languages:
     - all
 file_types:
     - "*.*"
 priority: required
 related_resources:
-    - workflows://skill-authoring
+    - uri: workflows://skill-authoring
+      when: "following the create-and-evaluate procedure, not when only checking one rule"
 ---
 
 # Skill Authoring Standards
-Standards for creating Agent Skills — format requirements, frontmatter rules, naming conventions, context management, specificity calibration, and script design.
+Use when creating, reviewing, or refactoring an Agent Skill. Covers SKILL.md format, descriptions, context limits, and script rules.
 
-These standards are derived from the [Agent Skills specification](https://agentskills.io/specification) and [best practices](https://agentskills.io/skill-creation/best-practices). Agents should consult the source pages for the latest guidance as the specification evolves.
+Read this file. Read a related resource only when its `when` condition matches this step.
 
-## Source References
-
-- **Specification**: https://agentskills.io/specification
-- **Best Practices**: https://agentskills.io/skill-creation/best-practices
-- **Optimizing Descriptions**: https://agentskills.io/skill-creation/optimizing-descriptions
-- **Using Scripts**: https://agentskills.io/skill-creation/using-scripts
-- **Evaluating Skills**: https://agentskills.io/skill-creation/evaluating-skills
+These rules are the local copy of the [Agent Skills specification](https://agentskills.io/specification) and [best practices](https://agentskills.io/skill-creation/best-practices). Consult those pages only when this file does not cover the case.
 
 ## Directory Structure
 
 - ALWAYS place each skill in its own directory. The directory name ALWAYS matches the `name` field in `SKILL.md`.
 - ALWAYS include a `SKILL.md` file at the skill directory root. This is the only required file.
-
-```
-skill-name/
-├── SKILL.md          # Required: metadata + instructions
-├── scripts/          # Optional: executable code
-├── references/       # Optional: documentation
-├── assets/           # Optional: templates, resources
-└── ...               # Any additional files or directories
-```
+- Optional `scripts/`, `references/`, and `assets/` directories hold executable code, detailed reference, and templates.
 
 ## `SKILL.md` Frontmatter Requirements
 
@@ -54,11 +41,8 @@ skill-name/
 # ✅ GOOD
 name: pdf-processing
 
-# ✅ GOOD
-name: data-analysis
-
 # ❌ BAD
-name: PDF-Processing  # uppercase not allowed
+name: PDF-Processing
 ```
 
 ### `description` field (required)
@@ -73,10 +57,7 @@ name: PDF-Processing  # uppercase not allowed
 
 ```yaml
 # ✅ GOOD
-description: >
-  Extracts text and tables from PDF files, fills PDF forms, and merges
-  multiple PDFs. Use when working with PDF documents or when the user
-  mentions PDFs, forms, or document extraction.
+description: Extracts text and tables from PDF files. Use when the user mentions PDFs, forms, or document extraction.
 
 # ❌ BAD
 description: Helps with PDFs.
@@ -86,38 +67,20 @@ description: Helps with PDFs.
 
 - PREFER keeping the license field short — either the name of a license or the name of a bundled license file.
 
-```yaml
-license: Apache-2.0
-```
-
 ### `compatibility` field (optional)
 
 - ONLY include if the skill has specific environment requirements.
 - ALWAYS keep to 1-500 characters.
 - ALWAYS state required system packages, network access needs, or intended products.
 
-```yaml
-compatibility: Requires git, docker, jq, and access to the internet
-```
-
 ### `metadata` field (optional)
 
 - PREFER using reasonably unique key names to avoid accidental conflicts.
 - ALWAYS use a map of string keys to string values.
 
-```yaml
-metadata:
-  author: example-org
-  version: "1.0"
-```
-
 ### `allowed-tools` field (optional)
 
 - ALWAYS use a space-separated string of pre-approved tool names.
-
-```yaml
-allowed-tools: Bash(git:*) Bash(jq:*) Read
-```
 
 ## Body Content
 
@@ -160,11 +123,7 @@ allowed-tools: Bash(git:*) Bash(jq:*) Read
 ```markdown
 ## Gotchas
 
-- The `users` table uses soft deletes. Queries must include
-  `WHERE deleted_at IS NULL` or results will include deactivated accounts.
-- The `/health` endpoint returns 200 as long as the web server is running,
-  even if the database connection is down. Use `/ready` to check full
-  service health.
+- The `users` table uses soft deletes. Queries must include `WHERE deleted_at IS NULL`.
 ```
 
 ### Output Templates

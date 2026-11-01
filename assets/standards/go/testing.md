@@ -1,19 +1,23 @@
 ---
 uri: standards://go/testing
 name: Go (Golang) Testing Standards
-description: "Standards for Go tests: package choice, fakes, tables, and what make test and make check run."
+description: "Use when writing or reviewing Go tests. Covers package choice, fakes, tables, and what make test and make check run."
 languages:
     - go
 file_types:
     - "*_test.go"
 priority: required
 related_resources:
-    - standards://go/architecture
-    - standards://go/tooling
+    - uri: standards://go/architecture
+      when: "a test is pressuring production layout or exports"
+    - uri: standards://go/tooling
+      when: "changing how tests, lint, or make check run"
 ---
 
 # Go (Golang) Testing Standards
-Standards for Go tests: package choice, fakes, tables, and what make test and make check run.
+Use when writing or reviewing Go tests. Covers package choice, fakes, tables, and what make test and make check run.
+
+Read this file. Read a related resource only when its `when` condition matches this step.
 
 - ALWAYS follow the repository when it already uses another test framework. Repository rules win.
 - PREFER the standard `testing` package unless the repository already uses another framework.

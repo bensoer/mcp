@@ -1,20 +1,25 @@
 ---
 uri: standards://git/operations
 name: Git Operations Standards
-description: Operational standards for working with Git in regards to managing history, pushing and pulling changes
+description: "Use when pushing, pulling, rebasing, or rewriting Git history. Does not cover branch names or pull request text."
 languages:
     - all
 file_types:
     - "*.*"
 priority: required
 related_resources:
-    - standards://git/commit-staging
-    - standards://git/commit-messages
-    - standards://git/branches
+    - uri: standards://git/commit-staging
+      when: "splitting commits before a history change"
+    - uri: standards://git/commit-messages
+      when: "rewriting a message during amend or rebase"
+    - uri: standards://git/branches
+      when: "creating a branch before the history change"
 ---
 
 # Git Operations Standards
-Operational standards for working with Git in regards to managing history, pushing and pulling changes
+Use when pushing, pulling, rebasing, or rewriting Git history. Does not cover branch names or pull request text.
+
+Read this file. Read a related resource only when its `when` condition matches this step.
 
 - NEVER amend commits. NEVER use the `--amend` flag. IF a commit needs a fix, create a new commit on top.
 - NEVER force push: NEVER use `git push --force` or `git push --force-with-lease`.

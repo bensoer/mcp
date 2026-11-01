@@ -1,19 +1,23 @@
 ---
 uri: standards://git/commit-messages
 name: Git Commit Message Standards
-description: Standards around commit messages, formats, contents, and verbosity
+description: "Use when writing, amending, or reviewing a commit message. Covers Conventional Commits, the body, and verbosity."
 languages:
     - all
 file_types:
     - "*.*"
 priority: required
 related_resources:
-    - standards://git/commit-staging
-    - standards://git/operations
+    - uri: standards://git/commit-staging
+      when: "splitting or grouping the changes the message describes"
+    - uri: standards://git/operations
+      when: "amending, rebasing, or pushing that commit"
 ---
 
 # Commit Message Standards
-Standards around commit messages, formats, contents, and verbosity
+Use when writing, amending, or reviewing a commit message. Covers Conventional Commits, the body, and verbosity.
+
+Read this file. Read a related resource only when its `when` condition matches this step.
 
 
 - ALWAYS follow [Conventional Commits specification](https://www.conventionalcommits.org/en/v1.0.0/#specification):

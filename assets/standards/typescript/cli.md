@@ -1,21 +1,27 @@
 ---
 uri: standards://typescript/cli
 name: TypeScript CLI Standards
-description: "oclif standards for TypeScript CLIs. Thin commands, help text, flag validation, and where domain types live."
+description: "Use when writing an oclif TypeScript CLI. Covers thin commands, help text, flag validation, and where domain types live."
 languages:
     - typescript
 file_types:
     - "*.ts"
 priority: required
 related_resources:
-    - standards://typescript/architecture
-    - standards://typescript/syntax
-    - workflows://typescript-oclif-subcommand
-    - workflows://typescript-new-project
+    - uri: standards://typescript/architecture
+      when: "placing command code, contracts, or wiring"
+    - uri: standards://typescript/syntax
+      when: "TypeScript control flow or naming inside the command"
+    - uri: workflows://typescript-oclif-subcommand
+      when: "adding a command with oclif generate"
+    - uri: workflows://typescript-new-project
+      when: "scaffolding the oclif package"
 ---
 
 # TypeScript CLI Standards
-oclif standards for TypeScript CLIs. Thin commands, help text, flag validation, and where domain types live.
+Use when writing an oclif TypeScript CLI. Covers thin commands, help text, flag validation, and where domain types live.
+
+Read this file. Read a related resource only when its `when` condition matches this step.
 
 - ALWAYS follow the repository when it already uses another CLI stack. Repository rules win.
 - ALWAYS use oclif for a new CLI.

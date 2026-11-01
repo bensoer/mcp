@@ -1,22 +1,29 @@
 ---
 uri: standards://typescript/architecture
 name: TypeScript Coding Architecture Practices
-description: "Best practices for TypeScript service and CLI organisation, composition, contracts, and wiring."
+description: "Use when creating or reviewing TypeScript service or CLI layout, composition, contracts, or wiring."
 languages:
     - typescript
 file_types:
     - "*.ts"
 priority: required
 related_resources:
-    - standards://typescript/syntax
-    - standards://typescript/cli
-    - standards://typescript/tooling
-    - standards://typescript/testing
-    - workflows://typescript-new-project
+    - uri: standards://typescript/syntax
+      when: "control flow, async, generics, or naming"
+    - uri: standards://typescript/cli
+      when: "the project is an oclif command"
+    - uri: standards://typescript/tooling
+      when: "package manager, lint, format, or tsconfig is also changing"
+    - uri: standards://typescript/testing
+      when: "adding or changing Jest tests"
+    - uri: workflows://typescript-new-project
+      when: "scaffolding a new TypeScript service or CLI"
 ---
 
 # TypeScript Coding Architecture Practices
-Best practices for TypeScript service and CLI organisation, composition, contracts, and wiring.
+Use when creating or reviewing TypeScript service or CLI layout, composition, contracts, or wiring.
+
+Read this file. Read a related resource only when its `when` condition matches this step.
 
 - ALWAYS follow the repository when it already standardizes on different tools. Repository rules win.
 - ALWAYS apply these rules when writing new TypeScript for a service or CLI.

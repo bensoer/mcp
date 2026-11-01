@@ -1,23 +1,31 @@
 ---
 uri: standards://go/architecture
 name: Go (Golang) Coding Architecture Practices
-description: "Best practices for go code organisation and application architecture"
+description: "Use when creating or reviewing Go package layout, constructors, or wiring. Repository layout wins if it already differs."
 languages:
     - go
 file_types:
     - "*.go"
 priority: required
 related_resources:
-    - standards://go/syntax
-    - standards://go/logging
-    - standards://go/cli
-    - standards://go/tooling
-    - standards://go/testing
-    - workflows://go-new-project
+    - uri: standards://go/syntax
+      when: "naming files, packages, or choosing Go syntax"
+    - uri: standards://go/logging
+      when: "adding or changing log calls or logger setup"
+    - uri: standards://go/cli
+      when: "adding a command, flag, help text, or process exit"
+    - uri: standards://go/tooling
+      when: "changing the Makefile, lint, pre-commit, or vulnerability checks"
+    - uri: standards://go/testing
+      when: "adding or changing Go tests"
+    - uri: workflows://go-new-project
+      when: "scaffolding a new Go module"
 ---
 
 # Go (Golang) Coding Architecture Practices
-Best practices for go code organisation and application architecture
+Use when creating or reviewing Go package layout, constructors, or wiring. Repository layout wins if it already differs.
+
+Read this file. Read a related resource only when its `when` condition matches this step.
 
 - ALWAYS follow the repository when it already standardizes on different tools. Repository rules win.
 - ALWAYS apply these rules when writing new Go. NEVER restyle an existing repository to match them unless asked.

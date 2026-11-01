@@ -1,22 +1,27 @@
 ---
 uri: standards://typescript/tooling
 name: TypeScript Tooling Standards
-description: "pnpm, ESM, ESLint, Prettier, Jest, and tsconfig standards for new TypeScript services and CLIs."
+description: "Use when setting up pnpm, ESM, ESLint, Prettier, Jest, or tsconfig for a TypeScript service or CLI."
 languages:
     - typescript
 file_types:
     - "*.ts"
-    - "package.json"
-    - "tsconfig.json"
+    - package.json
+    - tsconfig.json
 priority: required
 related_resources:
-    - standards://typescript/architecture
-    - standards://typescript/testing
-    - workflows://typescript-new-project
+    - uri: standards://typescript/architecture
+      when: "the package layout is also being chosen"
+    - uri: standards://typescript/testing
+      when: "the Jest setup is part of the change"
+    - uri: workflows://typescript-new-project
+      when: "scaffolding a new TypeScript project"
 ---
 
 # TypeScript Tooling Standards
-pnpm, ESM, ESLint, Prettier, Jest, and tsconfig standards for new TypeScript services and CLIs.
+Use when setting up pnpm, ESM, ESLint, Prettier, Jest, or tsconfig for a TypeScript service or CLI.
+
+Read this file. Read a related resource only when its `when` condition matches this step.
 
 - ALWAYS follow the repository when it already has a toolchain. Repository rules win.
 - ALWAYS apply these rules when the project has no toolchain yet.

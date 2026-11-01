@@ -1,19 +1,21 @@
 ---
 uri: standards://python/logging
 name: Python Logging Standards
-description: "Standards, settings and practices for setting up and configuring logging in any python project."
+description: "Use when adding or configuring logging in a Python project. Covers logger setup, levels, and what must not be logged."
 languages:
     - python
 file_types:
     - "*.py"
 priority: required
 related_resources:
-    - standards://python/syntax
-
+    - uri: standards://python/syntax
+      when: "the logging call also changes Python syntax or typing"
 ---
 
 # Python Logging Standards
-Standards, settings and practices for setting up and configuring logging in any python project.
+Use when adding or configuring logging in a Python project. Covers logger setup, levels, and what must not be logged.
+
+Read this file. Read a related resource only when its `when` condition matches this step.
 
 ## Logger Creation
 
