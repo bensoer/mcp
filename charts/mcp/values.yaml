@@ -37,7 +37,6 @@ securityContext:
       - ALL
 
 service:
-  type: ClusterIP
   port: 8080
   sessionAffinity: ClientIP
   sessionAffinityTimeoutSeconds: 10800
@@ -51,11 +50,10 @@ ingress:
 
 resources:
   limits:
-    cpu: 500m
-    memory: 256Mi
+    memory: 128Mi
   requests:
     cpu: 50m
-    memory: 64Mi
+    memory: 128Mi
 
 livenessProbe:
   httpGet:
