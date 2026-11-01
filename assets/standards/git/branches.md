@@ -1,19 +1,23 @@
 ---
 uri: standards://git/branches
 name: Git Branching Standards
-description: Rules on branch creation, branch naming conventions, pushing and PR practices
+description: "Use when creating or naming a Git branch. Does not cover pushing, history rewrites, or pull requests."
 languages:
     - all
 file_types:
     - "*.*"
 priority: required
 related_resources:
-    - standards://git/commit-messages
-    - standards://git/commit-staging
+    - uri: standards://git/commit-messages
+      when: "writing the commit message on that branch"
+    - uri: standards://git/commit-staging
+      when: "deciding how to split commits on that branch"
 ---
 
 # Branching Standards
-Rules on branch creation, branch naming conventions, pushing and PR practices
+Use when creating or naming a Git branch. Does not cover pushing, history rewrites, or pull requests.
+
+Read this file. Read a related resource only when its `when` condition matches this step.
 
 - ALWAYS branch off from main/base branch before making any changes
 - ALWAYS pull latest remote changes from main/base branch before branching

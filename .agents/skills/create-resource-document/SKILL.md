@@ -62,8 +62,10 @@ file_types:
     - "*.*"
 priority: required
 related_resources:
-    - standards://git/commit-messages
-    - standards://git/commit-staging
+    - uri: standards://git/commit-messages
+      when: "the title must follow commit-message syntax"
+    - uri: standards://git/commit-staging
+      when: "commits in the pull request are being split"
 ---
 ```
 
@@ -75,7 +77,7 @@ related_resources:
 | `languages` | No | e.g. `all`, `python`, `go`. (Currently documentation only.) |
 | `file_types` | No | e.g. `"*.*"`. (Currently documentation only.) |
 | `priority` | No | e.g. `required`. (Currently documentation only.) |
-| `related_resources` | No | List of URIs referencing other standards. **Must use snake_case** — the struct tag is `yaml:"related_resources"` and camelCase keys are silently dropped. |
+| `related_resources` | No | List of `{uri, when}` objects. **Must use snake_case** — the struct tag is `yaml:"related_resources"` and camelCase keys are silently dropped. A bare URI string does not parse. `when` is required and is the only reason to read that resource. |
 
 ## Step 3 — Write the body
 
@@ -101,7 +103,7 @@ walked once during `BootstrapServer()`. After creating or editing a file:
 
 - [ ] URI is in the right namespace and is unique (no other file claims it)
 - [ ] `uri` and `name` frontmatter fields are present and non-empty
-- [ ] `related_resources` uses snake_case (not camelCase)
+- [ ] `related_resources` uses snake_case `{uri, when}` objects, not a bare URI list
 - [ ] Filename is kebab-case and ends in `.md`
 - [ ] Body H1 mirrors the `name` field
 - [ ] Rule statements use ALWAYS/NEVER/PREFER in imperative mood

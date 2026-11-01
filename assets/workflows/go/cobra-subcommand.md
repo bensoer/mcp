@@ -1,20 +1,25 @@
 ---
 uri: workflows://go-cobra-subcommand
 name: Go Cobra Subcommand Workflow
-description: "Step-by-step workflow for adding a Cobra subcommand with cobra-cli, complete help text, and registration under the correct parent."
+description: "Use when adding a Cobra subcommand with cobra-cli. Covers help text, flags, validation, and parent registration."
 languages:
     - go
 file_types:
     - "*.go"
 priority: required
 related_resources:
-    - standards://go/cli
-    - standards://go/architecture
-    - workflows://go-new-project
+    - uri: standards://go/cli
+      when: "command shape, help, flags, or process exit"
+    - uri: standards://go/architecture
+      when: "where the command package and wiring live"
+    - uri: workflows://go-new-project
+      when: "the module layout does not exist yet"
 ---
 
 # Go Cobra Subcommand Workflow
-Step-by-step workflow for adding a Cobra subcommand.
+Use when adding a Cobra subcommand with cobra-cli. Covers help text, flags, validation, and parent registration.
+
+Read this file. Read a related resource only when its `when` condition matches this step.
 
 Use this when adding a command or subcommand to an existing Cobra CLI. Follow `standards://go/cli` and `standards://go/architecture`.
 

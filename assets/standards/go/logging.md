@@ -1,20 +1,25 @@
 ---
 uri: standards://go/logging
 name: Go (Golang) Logging Standards
-description: "Standards, settings and practices for setting up and configuring logging in any go project."
+description: "Use when adding or configuring logging in a Go project. Covers logger setup, levels, and where an error is logged."
 languages:
     - go
 file_types:
     - "*.go"
 priority: required
 related_resources:
-    - standards://go/syntax
-    - standards://go/architecture
-    - standards://go/cli
+    - uri: standards://go/syntax
+      when: "wrapping or returning the error being logged"
+    - uri: standards://go/architecture
+      when: "placing the logger in the container or a feature package"
+    - uri: standards://go/cli
+      when: "the CLI owns process exit or stdout for that log"
 ---
 
 # Go (Golang) Logging Standards
-Standards, settings and practices for setting up and configuring logging in any go project.
+Use when adding or configuring logging in a Go project. Covers logger setup, levels, and where an error is logged.
+
+Read this file. Read a related resource only when its `when` condition matches this step.
 
 - ALWAYS follow the repository when it already standardizes on a different logger. Repository rules win.
 - PREFER `go.uber.org/zap` sugared logger for new logging.

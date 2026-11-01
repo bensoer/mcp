@@ -1,19 +1,23 @@
 ---
 uri: standards://typescript/syntax
 name: TypeScript Syntax Standards
-description: "Standards for how TypeScript service and CLI code should look. Control flow, async, generics, and naming."
+description: "Use when writing or reviewing TypeScript control flow, async, generics, or naming in a service or CLI."
 languages:
     - typescript
 file_types:
     - "*.ts"
 priority: required
 related_resources:
-    - standards://typescript/architecture
-    - standards://typescript/tooling
+    - uri: standards://typescript/architecture
+      when: "the change is package layout, contracts, or wiring"
+    - uri: standards://typescript/tooling
+      when: "lint or formatter config is part of the change"
 ---
 
 # TypeScript Syntax Standards
-Standards for how TypeScript service and CLI code should look. Control flow, async, generics, and naming.
+Use when writing or reviewing TypeScript control flow, async, generics, or naming in a service or CLI.
+
+Read this file. Read a related resource only when its `when` condition matches this step.
 
 - ALWAYS follow the repository when it already standardizes on different syntax. Repository rules win.
 - ALWAYS apply these rules to new service and CLI code. NEVER restyle existing files unless asked.

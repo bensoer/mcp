@@ -1,21 +1,27 @@
 ---
 uri: standards://go/cli
 name: Go (Golang) CLI Standards
-description: "Cobra and Viper standards for Go CLIs. Thin command edge, help text, flag validation, and who owns stdout and process exit."
+description: "Use when writing a Go CLI with Cobra or Viper. Covers the thin command edge, help text, flag validation, and who owns stdout and process exit."
 languages:
     - go
 file_types:
     - "*.go"
 priority: required
 related_resources:
-    - standards://go/architecture
-    - standards://go/logging
-    - workflows://go-cobra-subcommand
-    - workflows://go-new-project
+    - uri: standards://go/architecture
+      when: "placing the command package, constructors, or wiring"
+    - uri: standards://go/logging
+      when: "choosing where the CLI logs instead of writing stdout"
+    - uri: workflows://go-cobra-subcommand
+      when: "adding a subcommand with cobra-cli"
+    - uri: workflows://go-new-project
+      when: "scaffolding the CLI module"
 ---
 
 # Go (Golang) CLI Standards
-Cobra and Viper standards for Go CLIs. Thin command edge, help text, flag validation, and who owns stdout and process exit.
+Use when writing a Go CLI with Cobra or Viper. Covers the thin command edge, help text, flag validation, and who owns stdout and process exit.
+
+Read this file. Read a related resource only when its `when` condition matches this step.
 
 - ALWAYS follow the repository when it already uses another CLI stack. Repository rules win.
 - ALWAYS use Cobra for a new CLI unless the project already uses another stack.

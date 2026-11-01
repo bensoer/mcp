@@ -1,19 +1,23 @@
 ---
 uri: standards://python/syntax
 name: Python Syntax Standards
-description: "Standards for how python code should look. Naming conventions, language structure preferences"
+description: "Use when writing or reviewing Python syntax, naming, or typing. Covers local exceptions such as no ternaries and explicit None checks."
 languages:
     - python
 file_types:
     - "*.py"
 priority: required
 related_resources:
-    - standards://python/logging
-    - standards://python/architecture
+    - uri: standards://python/logging
+      when: "the change adds or configures logging"
+    - uri: standards://python/architecture
+      when: "the change is package layout or inheritance versus composition"
 ---
 
 # Python Syntax Standards
-Standards for how python code should look. Naming conventions, language structure preferences
+Use when writing or reviewing Python syntax, naming, or typing. Covers local exceptions such as no ternaries and explicit None checks.
+
+Read this file. Read a related resource only when its `when` condition matches this step.
 
 
 - ALWAYS favor legibility over performance or speed. ALWAYS choose common, popular and well-documented implementation strategies. NEVER write novel or unique implementations.

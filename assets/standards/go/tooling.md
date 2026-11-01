@@ -1,23 +1,28 @@
 ---
 uri: standards://go/tooling
 name: Go (Golang) Tooling Standards
-description: "Makefile, bin output, pre-commit, golangci-lint, and govulncheck standards for Go projects."
+description: "Use when adding or changing a Go Makefile, bin/ output, pre-commit, golangci-lint, or govulncheck."
 languages:
     - go
 file_types:
     - "*.go"
-    - "Makefile"
-    - ".pre-commit-config.yaml"
-    - ".golangci.yml"
+    - Makefile
+    - .pre-commit-config.yaml
+    - .golangci.yml
 priority: required
 related_resources:
-    - standards://go/architecture
-    - standards://go/testing
-    - workflows://go-new-project
+    - uri: standards://go/architecture
+      when: "the build layout or cmd/ entrypoint is also changing"
+    - uri: standards://go/testing
+      when: "the change affects how tests run"
+    - uri: workflows://go-new-project
+      when: "scaffolding those files for a new module"
 ---
 
 # Go (Golang) Tooling Standards
-Makefile, bin output, pre-commit, golangci-lint, and govulncheck standards for Go projects.
+Use when adding or changing a Go Makefile, bin/ output, pre-commit, golangci-lint, or govulncheck.
+
+Read this file. Read a related resource only when its `when` condition matches this step.
 
 - ALWAYS follow the repository when it already standardizes on different tools. Repository rules win.
 - ALWAYS apply these rules to new Go projects. NEVER restyle an existing repository's toolchain unless asked.

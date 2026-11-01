@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"mcp/internal/utils"
@@ -63,6 +65,21 @@ Content for %s.
 `, uri, name, name, name)
 }
 
+func TestBootstrapServer_RepoAssets(t *testing.T) {
+	root := filepath.Join("..", "assets")
+	if _, err := os.Stat(root); err != nil {
+		t.Skip("repo assets not available")
+	}
+
+	server, err := BootstrapServer(utils.NewAssetsFinder(root))
+	if err != nil {
+		t.Fatalf("BootstrapServer() error: %v", err)
+	}
+	if server == nil {
+		t.Fatal("BootstrapServer() returned nil server")
+	}
+}
+
 func TestBootstrapServer_ValidAssets(t *testing.T) {
 	mock := &mockAssetsFinder{
 		paths: []string{"a.md", "b.md"},
@@ -114,6 +131,27 @@ uri: test://noname
 	_, err := BootstrapServer(mock)
 	if err == nil {
 		t.Error("BootstrapServer() expected error for missing name, got nil")
+	}
+}
+
+func TestBootstrapServer_RelatedResourceMissingWhen(t *testing.T) {
+	mock := &mockAssetsFinder{
+		paths: []string{"bad.md"},
+		contents: map[string]string{
+			"bad.md": `---
+uri: test://bad
+name: Bad Related
+related_resources:
+  - uri: standards://git/branches
+---
+# Content
+`,
+		},
+	}
+
+	_, err := BootstrapServer(mock)
+	if err == nil {
+		t.Error("BootstrapServer() expected error for related resource missing when, got nil")
 	}
 }
 

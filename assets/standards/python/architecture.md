@@ -1,18 +1,21 @@
 ---
 uri: standards://python/architecture
 name: Python Coding Architecture Practices
-description: "Best practices for code organisation and application architecture"
+description: "Use when creating or reviewing Python package layout and object composition. Prefer composition over inheritance."
 languages:
     - python
 file_types:
     - "*.py"
 priority: required
 related_resources:
-    - standards://python/syntax
+    - uri: standards://python/syntax
+      when: "naming, typing, or control-flow style in that Python code"
 ---
 
 # Python Coding Architecture Practices
-Best practices for code organisation and application architecture
+Use when creating or reviewing Python package layout and object composition. Prefer composition over inheritance.
+
+Read this file. Read a related resource only when its `when` condition matches this step.
 
 - PREFER Composition over Inheritance
 - IF choosing Interhitence, implementation MUST pass ALL S.O.L.I.D. principals. Failure of ANY SOLID principal means Inheritance is the wrong architecture. Use Composition instead.

@@ -1,18 +1,21 @@
 ---
 uri: standards://comments
 name: Code Comment Preservation Standards
-description: Standards around treatment of comments in code - whether that is human or machine authored
+description: "Use when editing code that already has comments. Never delete or reword comments, including machine-authored ones."
 languages:
     - all
 file_types:
     - "*.*"
 priority: required
 related_resources:
-    - workflows://refactoring-comments
+    - uri: workflows://refactoring-comments
+      when: "moving or splitting code that has comments"
 ---
 
 # Code Comment Preservation Standards
-Standards around treatment of comments in code - whether that is human or machine authored
+Use when editing code that already has comments. Never delete or reword comments, including machine-authored ones.
+
+Read this file. Read a related resource only when its `when` condition matches this step.
 
 ## Scope
 

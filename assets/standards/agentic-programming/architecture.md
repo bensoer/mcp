@@ -1,7 +1,7 @@
 ---
 uri: standards://agentic-programming/architecture
 name: Agentic Programming Practices
-description: "Best practices for folders, files and descriptions for creating projects with agents, AI, LLMs, harnesses, etc"
+description: "Use when creating or reviewing a repository's agent-facing layout. Covers .agents/, docs/, AGENTS.md, and what each file is for."
 languages:
     - all
 file_types:
@@ -11,8 +11,8 @@ related_resources: []
 ---
 
 # Agentic Programming Best Practices
+Use when creating or reviewing a repository's agent-facing layout. Covers .agents/, docs/, AGENTS.md, and what each file is for.
 
-From the repository root, always have the following folder structure and files
 ```
 .agents/
 ├─ rules/

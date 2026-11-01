@@ -1,18 +1,21 @@
 ---
 uri: standards://git/commit-staging
 name: Git Commit Staging Standards
-description: Standards on git commits. How they should be created, separated, commented and organised
+description: "Use when grouping changes into commits. Covers the 500-line limit and separating source, tests, and docs."
 languages:
     - all
 file_types:
     - "*.*"
 priority: required
 related_resources:
-    - standards://git/commit-messages
+    - uri: standards://git/commit-messages
+      when: "writing the message for a commit just staged"
 ---
 
 # Git Commit Staging Standards
-Standards on git commits. How they should be created, separated, commented and organised
+Use when grouping changes into commits. Covers the 500-line limit and separating source, tests, and docs.
+
+Read this file. Read a related resource only when its `when` condition matches this step.
 
 - NEVER exceed 500 lines per commit. ALWAYS keep total insertions + deletions at or under 500 lines per commit. Split changes as necessary.
 - PREFER splitting commits into logical groupings of changes

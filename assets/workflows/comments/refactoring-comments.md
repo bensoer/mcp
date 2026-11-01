@@ -1,17 +1,21 @@
 ---
 uri: workflows://refactoring-comments
 name: Refactoring Comments Workflow
-description: Workflow instructions for refactoring code that contains comments. Instructions and rules to follow on how to effectively preserve comments through code changes or refactors - whether that planned or actual.
+description: "Use when a refactor moves or splits code that already has comments. Preserves comment text and placement."
 languages:
     - all
 file_types:
     - "*.*"
 priority: required
 related_resources:
-    - standards://comments
+    - uri: standards://comments
+      when: "applying the never-delete and never-reword rules"
 ---
 
 # Step 1: Review All Code For Comments
+Use when a refactor moves or splits code that already has comments. Preserves comment text and placement.
+
+Read this file. Read a related resource only when its `when` condition matches this step.
 
 ## Pre-edit Comment Checks
 

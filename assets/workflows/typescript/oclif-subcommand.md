@@ -1,20 +1,25 @@
 ---
 uri: workflows://typescript-oclif-subcommand
 name: TypeScript oclif Subcommand Workflow
-description: "Step-by-step workflow for adding an oclif command with oclif generate, kebab-case command paths, full help text, and flag validation before I/O."
+description: "Use when adding an oclif command with oclif generate. Covers kebab-case command paths, help text, and flag validation before I/O."
 languages:
     - typescript
 file_types:
     - "*.ts"
 priority: required
 related_resources:
-    - standards://typescript/cli
-    - standards://typescript/architecture
-    - workflows://typescript-new-project
+    - uri: standards://typescript/cli
+      when: "command shape, help, flags, or where types live"
+    - uri: standards://typescript/architecture
+      when: "where the command and wiring live"
+    - uri: workflows://typescript-new-project
+      when: "the oclif package does not exist yet"
 ---
 
 # TypeScript oclif Subcommand Workflow
-Step-by-step workflow for adding an oclif command.
+Use when adding an oclif command with oclif generate. Covers kebab-case command paths, help text, and flag validation before I/O.
+
+Read this file. Read a related resource only when its `when` condition matches this step.
 
 Use this when adding a command or subcommand to an existing oclif CLI. Follow `standards://typescript/cli` and `standards://typescript/architecture`.
 

@@ -56,7 +56,7 @@ URIs follow the pattern `{type}://{category}/{topic}`:
 | `languages` | `[]string` | e.g. `["all"]`, `["python"]`. |
 | `file_types` | `[]string` | e.g. `["*.*"]`, `["*.py"]`. |
 | `priority` | string | e.g. `required`. |
-| `related_resources` | `[]string` | URIs of related standards. |
+| `related_resources` | list of `{uri, when}` | Other resources to read only when `when` matches the current step. |
 
 ### Critical: `related_resources` naming
 
@@ -67,12 +67,22 @@ server will start but the related resources won't be populated.
 ```yaml
 # ✅ CORRECT
 related_resources:
+    - uri: standards://git/commit-messages
+      when: "writing or amending a commit message"
+
+# ❌ WRONG — does not parse
+related_resources:
     - standards://git/commit-messages
 
 # ❌ WRONG — silently dropped
 relatedResources:
-    - standards://git/commit-messages
+    - uri: standards://git/commit-messages
+      when: "writing or amending a commit message"
 ```
+
+- ALWAYS include `when` for every related resource. A missing `when` fails server startup.
+- ALWAYS state the step that makes that read necessary. NEVER use `when` to mean "always".
+- ALWAYS put this sentence after the opening description when `related_resources` is non-empty: Read this file. Read a related resource only when its `when` condition matches this step.
 
 ## Content Style
 

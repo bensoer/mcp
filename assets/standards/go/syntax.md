@@ -1,20 +1,25 @@
 ---
 uri: standards://go/syntax
 name: Go (Golang) Syntax Standards
-description: "Standards for how go (golang) code should look. Naming conventions, language structure preferences"
+description: "Use when writing or reviewing Go syntax, names, errors, or context handling. Repository rules win if they already differ."
 languages:
     - go
 file_types:
     - "*.go"
 priority: required
 related_resources:
-    - standards://go/architecture
-    - standards://go/logging
-    - standards://comments
+    - uri: standards://go/architecture
+      when: "file layout, one struct per file, or constructors"
+    - uri: standards://go/logging
+      when: "the error is also being logged"
+    - uri: standards://comments
+      when: "the edit touches an existing comment"
 ---
 
 # Go (Golang) Syntax Standards
-Standards for how go (golang) code should look. Naming conventions, language structure preferences
+Use when writing or reviewing Go syntax, names, errors, or context handling. Repository rules win if they already differ.
+
+Read this file. Read a related resource only when its `when` condition matches this step.
 
 - ALWAYS follow the repository when it already standardizes on different tools. Repository rules win.
 - ALWAYS favor legibility over performance or speed. ALWAYS choose common, popular, and well-documented implementation strategies.
