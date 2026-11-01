@@ -88,7 +88,7 @@ e2e: ## Run the minikube Helm and in-cluster e2e suite
 	minikube -p "$$PROFILE" update-context; \
 	kube create namespace mcp --dry-run=client -o yaml | kube apply -f -; \
 	helm --kube-context "$$PROFILE" upgrade --install mcp charts/mcp --namespace mcp --wait --timeout 5m \
-		--set image.tag=dev --set image.pullPolicy=Never \
+		--set image.repository=mcp --set image.tag=dev --set image.pullPolicy=Never \
 		--set tests.image.repository=mcp-e2e --set tests.image.tag=dev --set tests.image.pullPolicy=Never; \
 	kube rollout status deployment/mcp --namespace mcp --timeout=5m; \
 	READY=$$(kube get deployment mcp --namespace mcp -o jsonpath='{.status.readyReplicas}'); \
