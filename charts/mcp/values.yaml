@@ -54,6 +54,13 @@ ingress:
   hosts: []
   tls: []
 
+traefik:
+  ingressRoute:
+    enabled: true
+    domain: mcp.intra.soernet.ca
+    issuer: letsencrypt-prod-cluster-issuer
+    issuerKind: ClusterIssuer
+
 resources:
   limits:
     memory: 128Mi
