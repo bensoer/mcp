@@ -63,3 +63,16 @@ func TestParseServerConfigAcceptsHTTPConfiguration(t *testing.T) {
 		t.Errorf("rate limit: got %d, want %d", config.rateLimit, 5)
 	}
 }
+
+func TestParseServerConfigAcceptsDefaultRateLimitAndDisabledAuth(t *testing.T) {
+	config, err := parseServerConfig([]string{"-http", "127.0.0.1:8080", "-auth", "", "-rate-limit", "0"})
+	if err != nil {
+		t.Fatalf("parse server config: %v", err)
+	}
+	if config.authPath != "" {
+		t.Errorf("auth path: got %q, want empty", config.authPath)
+	}
+	if config.rateLimit != 0 {
+		t.Errorf("rate limit: got %d, want %d", config.rateLimit, 0)
+	}
+}

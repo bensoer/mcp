@@ -104,11 +104,52 @@ func TestHTTPAuthMCPRequiresValidBearer(t *testing.T) {
 	}
 	assertEmptyBody(t, response)
 
+	apiKey := registerAPIKey(t, server.URL, "bearer@example.com", http.StatusOK)
+	response = doRequestWithHeaders(t, http.MethodPost, server.URL+"/mcp", `{}`, map[string]string{
+		"Authorization": "Basic " + apiKey,
+	})
+	if response.StatusCode != http.StatusUnauthorized {
+		t.Fatalf("bad scheme status: got %d, want %d", response.StatusCode, http.StatusUnauthorized)
+	}
+	assertEmptyBody(t, response)
+
+	response = doRequestWithHeaders(t, http.MethodPost, server.URL+"/mcp", `{}`, map[string]string{
+		"X-API-Key": apiKey,
+	})
+	if response.StatusCode != http.StatusUnauthorized {
+		t.Fatalf("X-API-Key status: got %d, want %d", response.StatusCode, http.StatusUnauthorized)
+	}
+	assertEmptyBody(t, response)
+
+	response = doRequest(t, http.MethodPost, server.URL+"/mcp?api_key="+apiKey, `{}`, "application/json", "")
+	if response.StatusCode != http.StatusUnauthorized {
+		t.Fatalf("query parameter status: got %d, want %d", response.StatusCode, http.StatusUnauthorized)
+	}
+	assertEmptyBody(t, response)
+
 	health := doRequest(t, http.MethodGet, server.URL+"/healthz", "", "", "")
 	if health.StatusCode != http.StatusOK {
 		t.Fatalf("healthz status: got %d, want %d", health.StatusCode, http.StatusOK)
 	}
 	assertBody(t, health, "ok\n")
+}
+
+func TestHTTPAuthOffDoesNotExposeRegistration(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "std.md"), []byte(fixtureDoc), 0o600); err != nil {
+		t.Fatalf("write fixture: %v", err)
+	}
+	mcpServer, err := internal.BootstrapServer(utils.NewAssetsFinder(dir))
+	if err != nil {
+		t.Fatalf("BootstrapServer: %v", err)
+	}
+	server := httptest.NewServer(newMCPHandler(mcpServer))
+	t.Cleanup(server.Close)
+
+	response := doRequest(t, http.MethodPost, server.URL+"/register", `{"email":"user@example.com"}`, "application/json", "")
+	if response.StatusCode != http.StatusNotFound {
+		t.Fatalf("auth-off register status: got %d, want %d", response.StatusCode, http.StatusNotFound)
+	}
 }
 
 func TestHTTPAuthValidBearerListsResources(t *testing.T) {
@@ -241,15 +282,24 @@ func registerAPIKey(t *testing.T, baseURL, email string, wantStatus int) string 
 
 func doRequest(t *testing.T, method, url, body, contentType, bearer string) *http.Response {
 	t.Helper()
+	headers := make(map[string]string)
+	if contentType != "" {
+		headers["Content-Type"] = contentType
+	}
+	if bearer != "" {
+		headers["Authorization"] = "Bearer " + bearer
+	}
+	return doRequestWithHeaders(t, method, url, body, headers)
+}
+
+func doRequestWithHeaders(t *testing.T, method, url, body string, headers map[string]string) *http.Response {
+	t.Helper()
 	request, err := http.NewRequest(method, url, strings.NewReader(body))
 	if err != nil {
 		t.Fatalf("new request: %v", err)
 	}
-	if contentType != "" {
-		request.Header.Set("Content-Type", contentType)
-	}
-	if bearer != "" {
-		request.Header.Set("Authorization", "Bearer "+bearer)
+	for name, value := range headers {
+		request.Header.Set(name, value)
 	}
 	response, err := http.DefaultClient.Do(request)
 	if err != nil {
