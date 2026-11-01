@@ -5,11 +5,13 @@ package e2e
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -46,8 +48,33 @@ func TestMCPHTTPService(t *testing.T) {
 		}
 	})
 
+	authEnabled := os.Getenv("MCP_E2E_AUTH_ENABLED") == "true"
+	apiKey := ""
+	if authEnabled {
+		t.Run("mcp requires bearer authentication", func(t *testing.T) {
+			status, body := post(t, ctx, baseURL+"/mcp", "{}", "application/json", "")
+			if status != http.StatusUnauthorized {
+				t.Fatalf("unauthenticated MCP status = %d, want %d; body %q", status, http.StatusUnauthorized, body)
+			}
+		})
+		t.Run("register API key", func(t *testing.T) {
+			var err error
+			apiKey, err = registerAPIKey(t, ctx, baseURL)
+			if err != nil {
+				t.Fatalf("register API key: %v", err)
+			}
+		})
+		t.Run("remote address rate limit", func(t *testing.T) {
+			status, body, retryAfter := postWithHeaders(t, ctx, baseURL+"/mcp", "{}", "application/json", "")
+			if status != http.StatusTooManyRequests {
+				t.Fatalf("rate-limited MCP status = %d, want %d; body %q", status, http.StatusTooManyRequests, body)
+			}
+			assertRetryAfter(t, retryAfter)
+		})
+	}
+
 	client := mcp.NewClient(&mcp.Implementation{Name: "mcp-e2e", Version: "1.0.0"}, nil)
-	session, err := client.Connect(ctx, &mcp.StreamableClientTransport{Endpoint: baseURL + "/mcp"}, nil)
+	session, err := client.Connect(ctx, streamableTransport(baseURL+"/mcp", apiKey), nil)
 	if err != nil {
 		t.Fatalf("connect: %v", err)
 	}
@@ -192,7 +219,7 @@ func TestMCPHTTPService(t *testing.T) {
 
 	t.Run("second client connects", func(t *testing.T) {
 		secondClient := mcp.NewClient(&mcp.Implementation{Name: "mcp-e2e-second", Version: "1.0.0"}, nil)
-		secondSession, err := secondClient.Connect(ctx, &mcp.StreamableClientTransport{Endpoint: baseURL + "/mcp"}, nil)
+		secondSession, err := secondClient.Connect(ctx, streamableTransport(baseURL+"/mcp", apiKey), nil)
 		if err != nil {
 			t.Fatalf("second connect: %v", err)
 		}
@@ -206,6 +233,9 @@ func TestMCPHTTPService(t *testing.T) {
 		if err != nil {
 			t.Fatalf("create request: %v", err)
 		}
+		if apiKey != "" {
+			req.Header.Set("Authorization", "Bearer "+apiKey)
+		}
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			t.Fatalf("POST /mcp: %v", err)
@@ -218,6 +248,47 @@ func TestMCPHTTPService(t *testing.T) {
 			t.Fatalf("health after garbage POST = (%d, %q), want (%d, %q)", status, body, http.StatusOK, "ok\n")
 		}
 	})
+
+	if authEnabled {
+		t.Run("authenticated identity rate limit", func(t *testing.T) {
+			for attempt := 0; attempt < 50; attempt++ {
+				status, body, retryAfter := postWithHeaders(t, ctx, baseURL+"/mcp", "{}", "application/json", apiKey)
+				if status == http.StatusTooManyRequests {
+					assertRetryAfter(t, retryAfter)
+					return
+				}
+				if status == http.StatusUnauthorized {
+					t.Fatalf("authenticated MCP status = %d, want authorization to succeed", status)
+				}
+				_ = body
+			}
+			t.Fatal("authenticated MCP traffic was not rate limited")
+		})
+	} else {
+		t.Run("registration route is unavailable", func(t *testing.T) {
+			status, body := post(t, ctx, baseURL+"/register", `{"email":"[EMAIL]"}`, "application/json", "")
+			if status != http.StatusNotFound {
+				t.Fatalf("register status = %d, want %d; body %q", status, http.StatusNotFound, body)
+			}
+		})
+		t.Run("mcp is not rate limited", func(t *testing.T) {
+			for attempt := 0; attempt < 30; attempt++ {
+				status, _, _ := postWithHeaders(t, ctx, baseURL+"/mcp", "{}", "application/json", "")
+				if status == http.StatusTooManyRequests {
+					t.Fatalf("auth-off MCP request %d was rate limited", attempt+1)
+				}
+			}
+		})
+	}
+
+	t.Run("healthz is not rate limited", func(t *testing.T) {
+		for attempt := 0; attempt < 30; attempt++ {
+			status, body := get(t, ctx, baseURL+"/healthz")
+			if status != http.StatusOK || body != "ok\n" {
+				t.Fatalf("healthz request %d = (%d, %q), want (%d, %q)", attempt+1, status, body, http.StatusOK, "ok\n")
+			}
+		}
+	})
 }
 
 type resourceMetadata struct {
@@ -226,6 +297,83 @@ type resourceMetadata struct {
 
 type resourceListOutput struct {
 	Resources []resourceMetadata `json:"resources"`
+}
+
+type bearerRoundTripper struct {
+	token string
+	base  http.RoundTripper
+}
+
+func (t bearerRoundTripper) RoundTrip(request *http.Request) (*http.Response, error) {
+	cloned := request.Clone(request.Context())
+	cloned.Header.Set("Authorization", "Bearer "+t.token)
+	base := t.base
+	if base == nil {
+		base = http.DefaultTransport
+	}
+	return base.RoundTrip(cloned)
+}
+
+func streamableTransport(endpoint, apiKey string) *mcp.StreamableClientTransport {
+	transport := &mcp.StreamableClientTransport{Endpoint: endpoint}
+	if apiKey != "" {
+		transport.HTTPClient = &http.Client{Transport: bearerRoundTripper{token: apiKey}}
+	}
+	return transport
+}
+
+func registerAPIKey(t *testing.T, ctx context.Context, baseURL string) (string, error) {
+	t.Helper()
+	status, body := post(t, ctx, baseURL+"/register", `{"email":"[EMAIL]"}`, "application/json", "")
+	if status != http.StatusOK {
+		return "", fmt.Errorf("register status = %d, want %d; body %q", status, http.StatusOK, body)
+	}
+	var payload struct {
+		APIKey string `json:"apiKey"`
+	}
+	if err := json.Unmarshal([]byte(body), &payload); err != nil {
+		return "", fmt.Errorf("decode register response: %w", err)
+	}
+	if payload.APIKey == "" {
+		return "", errors.New("register response has no API key")
+	}
+	return payload.APIKey, nil
+}
+
+func post(t *testing.T, ctx context.Context, url, body, contentType, apiKey string) (int, string) {
+	t.Helper()
+	status, responseBody, _ := postWithHeaders(t, ctx, url, body, contentType, apiKey)
+	return status, responseBody
+}
+
+func postWithHeaders(t *testing.T, ctx context.Context, url, body, contentType, apiKey string) (int, string, string) {
+	t.Helper()
+	request, err := http.NewRequestWithContext(ctx, http.MethodPost, url, strings.NewReader(body))
+	if err != nil {
+		t.Fatalf("create POST %s: %v", url, err)
+	}
+	request.Header.Set("Content-Type", contentType)
+	if apiKey != "" {
+		request.Header.Set("Authorization", "Bearer "+apiKey)
+	}
+	response, err := http.DefaultClient.Do(request)
+	if err != nil {
+		t.Fatalf("POST %s: %v", url, err)
+	}
+	defer func() { _ = response.Body.Close() }()
+	responseBody, err := io.ReadAll(response.Body)
+	if err != nil {
+		t.Fatalf("read POST %s: %v", url, err)
+	}
+	return response.StatusCode, string(responseBody), response.Header.Get("Retry-After")
+}
+
+func assertRetryAfter(t *testing.T, value string) {
+	t.Helper()
+	seconds, err := strconv.Atoi(value)
+	if err != nil || seconds < 1 {
+		t.Fatalf("Retry-After = %q, want a positive whole number of seconds", value)
+	}
 }
 
 func callTool(t *testing.T, ctx context.Context, session *mcp.ClientSession, name string, args map[string]any, output *resourceListOutput) {

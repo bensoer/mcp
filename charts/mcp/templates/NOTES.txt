@@ -6,6 +6,17 @@ Endpoints:
   /healthz  HTTP health check
   /mcp     Streamable HTTP MCP endpoint
 
+Authentication is {{ if .Values.auth.enabled }}enabled{{ else }}off{{ end }}.
+{{- if .Values.auth.enabled }}
+
+Authentication is enabled with one replica. API keys are stored on the release's PersistentVolumeClaim.
+Register a key with POST /register, then call /mcp with "Authorization: Bearer <apiKey>".
+The HorizontalPodAutoscaler must stay off because Bolt allows one process.
+{{- else }}
+
+Authentication is off unless auth.enabled is set. The server accepts /mcp requests without a bearer token.
+{{- end }}
+
 Autoscaling is {{ if .Values.autoscaling.enabled }}enabled{{ else }}disabled{{ end }}, with {{ .Values.autoscaling.minReplicas }} to {{ .Values.autoscaling.maxReplicas }} replicas.
 
 The Service uses {{ .Values.service.sessionAffinity }} session affinity for {{ .Values.service.sessionAffinityTimeoutSeconds }} seconds. Sessions are held in memory: affinity keeps a client on one pod while the client IP is stable, but it does not preserve sessions when the client IP changes or the pod is replaced.

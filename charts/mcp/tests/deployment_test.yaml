@@ -44,6 +44,12 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].image
           value: ghcr.io/bensoer/mcp:latest
+      - notExists:
+          path: spec.template.spec.containers[0].args
+      - notExists:
+          path: spec.template.spec.containers[0].volumeMounts
+      - notExists:
+          path: spec.template.spec.securityContext.fsGroup
       - equal:
           path: spec.template.spec.containers[0].ports[0].containerPort
           value: 8080
@@ -71,3 +77,68 @@ tests:
       - equal:
           path: spec.replicas
           value: 2
+
+  - it: renders one authenticated replica with persistent storage
+    set:
+      auth.enabled: true
+      autoscaling.enabled: false
+      volumes:
+        - name: extra
+          emptyDir: {}
+      volumeMounts:
+        - name: extra
+          mountPath: /extra
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 1
+      - equal:
+          path: spec.template.spec.securityContext.fsGroup
+          value: 65532
+      - equal:
+          path: spec.template.spec.containers[0].args
+          value:
+            - "-http"
+            - "0.0.0.0:8080"
+            - "-auth"
+            - "/data/keys.db"
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].name
+          value: keys
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].mountPath
+          value: /data
+      - equal:
+          path: spec.template.spec.volumes[0].name
+          value: keys
+      - equal:
+          path: spec.template.spec.volumes[0].persistentVolumeClaim.claimName
+          value: RELEASE-NAME-mcp-keys
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[1].name
+          value: extra
+      - equal:
+          path: spec.template.spec.volumes[1].name
+          value: extra
+      - lengthEqual:
+          path: spec.template.spec.containers[0].volumeMounts
+          count: 2
+      - lengthEqual:
+          path: spec.template.spec.volumes
+          count: 2
+
+  - it: fails when authentication is enabled with autoscaling
+    set:
+      auth.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "Bolt allows one process only: auth.enabled requires replicaCount=1 and autoscaling.enabled=false"
+
+  - it: fails when authentication is enabled with multiple replicas
+    set:
+      auth.enabled: true
+      autoscaling.enabled: false
+      replicaCount: 2
+    asserts:
+      - failedTemplate:
+          errorMessage: "Bolt allows one process only: auth.enabled requires replicaCount=1 and autoscaling.enabled=false"

@@ -34,3 +34,11 @@ tests:
     asserts:
       - hasDocuments:
           count: 0
+
+  - it: does not render when authentication requires one process
+    set:
+      auth.enabled: true
+      autoscaling.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0

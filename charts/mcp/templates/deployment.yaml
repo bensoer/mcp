@@ -1,3 +1,8 @@
+{{- if .Values.auth.enabled }}
+{{- if or .Values.autoscaling.enabled (ne (int .Values.replicaCount) 1) }}
+{{- fail "Bolt allows one process only: auth.enabled requires replicaCount=1 and autoscaling.enabled=false" }}
+{{- end }}
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -5,7 +10,9 @@ metadata:
   labels:
     {{- include "mcp.labels" . | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
+  {{- if .Values.auth.enabled }}
+  replicas: 1
+  {{- else if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
@@ -30,9 +37,14 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "mcp.serviceAccountName" . }}
-      {{- with .Values.podSecurityContext }}
+      {{- if or .Values.auth.enabled .Values.podSecurityContext }}
       securityContext:
+        {{- with .Values.podSecurityContext }}
         {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- if .Values.auth.enabled }}
+        fsGroup: 65532
+        {{- end }}
       {{- end }}
       containers:
         - name: {{ .Chart.Name }}
@@ -42,6 +54,13 @@ spec:
           {{- end }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.auth.enabled }}
+          args:
+            - "-http"
+            - "0.0.0.0:8080"
+            - "-auth"
+            - "/data/keys.db"
+          {{- end }}
           ports:
             - name: http
               containerPort: 8080
@@ -58,13 +77,26 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.volumeMounts }}
+          {{- if or .Values.auth.enabled .Values.volumeMounts }}
           volumeMounts:
+            {{- if .Values.auth.enabled }}
+            - name: keys
+              mountPath: /data
+            {{- end }}
+            {{- with .Values.volumeMounts }}
             {{- toYaml . | nindent 12 }}
+            {{- end }}
           {{- end }}
-      {{- with .Values.volumes }}
+      {{- if or .Values.auth.enabled .Values.volumes }}
       volumes:
+        {{- if .Values.auth.enabled }}
+        - name: keys
+          persistentVolumeClaim:
+            claimName: {{ include "mcp.fullname" . }}-keys
+        {{- end }}
+        {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}
+        {{- end }}
       {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
