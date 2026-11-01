@@ -8,4 +8,4 @@
 - **`related_resources` is snake_case**: camelCase YAML keys are dropped.
 - **Interfaces live next to their consumer**: see `AssetsFinder` in `internal/utils/assets.go`.
 - **Commit checks go through Make**: pre-commit hooks call `make`, they do not call `go` directly.
-- **Kubernetes deployment uses `charts/mcp`**: the HPA ranges from 1 to 3 replicas and the Service uses `ClientIP` affinity because sessions are in-memory; probes use `/healthz`, with no in-process TLS or auth, and packaged charts attach to GitHub Releases rather than gcr.io.
+- **Kubernetes deployment uses `charts/mcp`**: the HPA ranges from 1 to 3 replicas and the Service uses `ClientIP` affinity because sessions are in-memory; probes use `/healthz`, with no in-process TLS or auth; release images publish to GitHub Container Registry and packaged charts attach to GitHub Releases.
