@@ -86,8 +86,7 @@ e2e: ## Run the minikube Helm and in-cluster e2e suite
 		(eval "$$(minikube -p "$$PROFILE" docker-env --shell=bash)"; docker build -t mcp:dev .; docker build --target e2e -t mcp-e2e:dev .); \
 	fi; \
 	minikube -p "$$PROFILE" update-context; \
-	kube create namespace mcp --dry-run=client -o yaml | kube apply -f -; \
-	helm --kube-context "$$PROFILE" upgrade --install mcp charts/mcp --namespace mcp --wait --timeout 5m \
+	helm --kube-context "$$PROFILE" upgrade --install mcp charts/mcp --namespace mcp --create-namespace --wait --timeout 5m \
 		--set image.repository=mcp --set image.tag=dev --set image.pullPolicy=Never \
 		--set tests.image.repository=mcp-e2e --set tests.image.tag=dev --set tests.image.pullPolicy=Never; \
 	kube rollout status deployment/mcp --namespace mcp --timeout=5m; \
