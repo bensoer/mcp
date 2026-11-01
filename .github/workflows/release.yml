@@ -1,47 +1,38 @@
 name: Release
 
 # Triggered when a GitHub Release is published. Builds the container image and
-# pushes it to Google Container Registry (gcr.io) using Workload Identity
-# Federation (no long-lived keys). Configure the GCP side once (see the PR
-# description / repo README for the exact steps); the GitHub secrets below are
-# the only per-repo configuration required.
+# pushes it to GitHub Container Registry using the built-in GITHUB_TOKEN, then
+# attaches the packaged Helm chart to the same GitHub Release.
 
 on:
   release:
     types: [published]
 
 permissions:
-  contents: read       # to check out the tag
-  id-token: write      # required to mint the OIDC token for Workload Identity Federation
+  contents: read
 
 env:
-  IMAGE: gcr.io/${{ secrets.GCP_PROJECT_ID }}/mcp
+  IMAGE: ghcr.io/bensoer/mcp
 
 jobs:
   build-and-push:
-    name: Build and push to GCR
+    name: Build and push to GHCR
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Authenticate to Google Cloud
-        id: auth
-        uses: google-github-actions/auth@v2
-        with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          token_format: access_token
-          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
-          service_account: ${{ secrets.GCP_SA_EMAIL }}
-
-      - name: Authenticate Docker to gcr.io
+      - name: Authenticate Docker to GHCR
         uses: docker/login-action@v3
         with:
-          registry: gcr.io
-          username: oauth2accesstoken
-          password: ${{ steps.auth.outputs.access_token }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract Docker metadata (tags)
         id: meta
@@ -72,3 +63,44 @@ jobs:
           echo "Tags:"
           echo "${{ steps.meta.outputs.tags }}"
           echo "Digest: ${{ steps.build.outputs.digest }}"
+
+  package-chart:
+    name: Package and attach Helm chart
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Package chart
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          chart_dir=$(mktemp -d)
+          trap 'rm -rf "$chart_dir"' EXIT
+          cp -R charts/mcp "$chart_dir/mcp"
+          awk -v repository="$IMAGE" -v tag="$version" '
+            /^image:$/ { in_image=1; in_tests=0; print; next }
+            /^tests:$/ { in_image=0; in_tests=1; print; next }
+            in_image && /^[a-zA-Z]/ { in_image=0 }
+            in_image && /^  repository:/ { $0="  repository: " repository }
+            in_image && /^  tag:/ { $0="  tag: " tag }
+            { print }
+          ' "$chart_dir/mcp/values.yaml" > "$chart_dir/values.yaml"
+          mv "$chart_dir/values.yaml" "$chart_dir/mcp/values.yaml"
+          helm package "$chart_dir/mcp" --version "$version" --app-version "$version" --destination "$chart_dir"
+          echo "CHART_ASSET=$(find "$chart_dir" -maxdepth 1 -name '*.tgz' -print -quit)" >> "$GITHUB_ENV"
+
+      - name: Attach chart to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test -n "$CHART_ASSET"
+          test -f "$CHART_ASSET"
+          gh release upload "$GITHUB_REF_NAME" "$CHART_ASSET"
