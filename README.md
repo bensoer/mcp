@@ -110,6 +110,8 @@ Agents changing this repository should start at [AGENTS.md](AGENTS.md).
 | `make vuln` | govulncheck |
 | `make fmt` | gofmt |
 | `make check` | fmt, typecheck, vet, lint, vuln, race tests |
+| `make helm-unittest` | install the pinned helm-unittest plugin and validate rendered manifests |
+| `make helm-lint` | helm-unittest, strict Helm lint, and a default-value template render |
 
 ```bash
 pre-commit install
