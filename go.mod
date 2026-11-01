@@ -1,6 +1,6 @@
 module mcp
 
-go 1.26.6
+go 1.27.3
 
 require (
 	github.com/adrg/frontmatter v0.2.0
