@@ -66,38 +66,18 @@ helm-lint: ## Lint and render the Helm chart
 e2e: ## Run the minikube Helm and in-cluster e2e suite
 	@set -euo pipefail; \
 	missing=; \
-	for tool in docker minikube helm kubectl python3; do \
+	for tool in docker minikube helm kubectl; do \
 		command -v "$$tool" >/dev/null 2>&1 || missing="$$missing $$tool"; \
 	done; \
 	if [ -n "$$missing" ]; then \
 		echo "make e2e requires:$$missing" >&2; \
 		exit 1; \
 	fi; \
-	profile_running() { \
-		minikube profile list -o json | python3 -c 'import json, sys; data = json.load(sys.stdin); profile = sys.argv[1]; sys.exit(0 if any(p.get("Name") == profile and p.get("Status") in ("Running", "OK") for p in data.get("valid", [])) else 1)' "$$1"; \
-	}; \
-	profile_exists() { \
-		minikube profile list -o json | python3 -c 'import json, sys; data = json.load(sys.stdin); profile = sys.argv[1]; sys.exit(0 if any(p.get("Name") == profile for p in data.get("valid", [])) else 1)' "$$1"; \
-	}; \
-	if [ -n "$${MINIKUBE_PROFILE:-}" ]; then \
-		PROFILE="$$MINIKUBE_PROFILE"; \
-	else \
-		PROFILE=$$(minikube profile list -o json | python3 -c 'import json, sys; data = json.load(sys.stdin); print(next((p["Name"] for p in data.get("valid", []) if p.get("Status") in ("Running", "OK")), ""))'); \
-		PROFILE="$${PROFILE:-mcp}"; \
-	fi; \
+	PROFILE="$${MINIKUBE_PROFILE:-mcp}"; \
 	kube() { minikube -p "$$PROFILE" kubectl -- "$$@"; }; \
-	STARTED=0; \
-	if ! profile_running "$$PROFILE"; then \
-		if profile_exists "$$PROFILE"; then \
-			minikube -p "$$PROFILE" start; \
-		else \
-			minikube -p "$$PROFILE" start --driver=docker; \
-		fi; \
-		STARTED=1; \
-	fi; \
-	if [ "$$STARTED" -eq 1 ]; then \
-		printf '%s\n' "$$PROFILE" > "$(E2E_PROFILE_FILE)"; \
-	fi; \
+	minikube delete -p "$$PROFILE"; \
+	minikube -p "$$PROFILE" start --driver=docker; \
+	printf '%s\n' "$$PROFILE" > "$(E2E_PROFILE_FILE)"; \
 	minikube -p "$$PROFILE" addons enable metrics-server || echo "warning: metrics-server may be unavailable; continuing"; \
 	docker build -t mcp:dev .; \
 	docker build --target e2e -t mcp-e2e:dev .; \
@@ -128,13 +108,7 @@ e2e: ## Run the minikube Helm and in-cluster e2e suite
 	RESTARTS=$$(kube get pods --namespace mcp -l app.kubernetes.io/name=mcp,app.kubernetes.io/instance=mcp -o jsonpath='{range .items[*]}{.status.containerStatuses[0].restartCount}{"\n"}{end}'); \
 	echo "$$RESTARTS" | grep -qv '[^0]' || { echo "app container restarted: $$RESTARTS" >&2; exit 1; }; \
 	echo "e2e passed for minikube profile $$PROFILE"; \
-	if [ "$$STARTED" -eq 1 ]; then \
-		echo "This command started profile $$PROFILE; tear it down with: make e2e-down"; \
-	elif [ -f "$(E2E_PROFILE_FILE)" ] && [ "$$(cat "$(E2E_PROFILE_FILE)")" = "$$PROFILE" ]; then \
-		echo "This command reused profile $$PROFILE, which an earlier make e2e started; tear it down with: make e2e-down"; \
-	else \
-		echo "This command reused profile $$PROFILE; make e2e-down will not delete it"; \
-	fi
+	echo "This command created a clean profile $$PROFILE; tear it down with: make e2e-down"
 
 e2e-down: ## Remove the e2e release and cluster started by make e2e
 	@set -euo pipefail; \

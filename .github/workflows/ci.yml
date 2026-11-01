@@ -80,23 +80,21 @@ jobs:
   e2e:
     name: Helm minikube e2e
     runs-on: ubuntu-latest
+    env:
+      MINIKUBE_PROFILE: minikube
     steps:
       - uses: actions/checkout@v4
 
-      - name: Start minikube
+      - name: Install minikube
         uses: medyagh/setup-minikube@v0.0.21
         with:
+          start: false
           driver: docker
 
       - name: Install Helm
         uses: azure/setup-helm@v4
 
-      - name: Record minikube profile
-        shell: bash
-        run: |
-          profile=$(minikube profile list -o json | python3 -c 'import json, sys; data = json.load(sys.stdin); print(next((p["Name"] for p in data.get("valid", []) if p.get("Status") in ("Running", "OK")), ""))')
-          test -n "$profile"
-          echo "MINIKUBE_PROFILE=$profile" >> "$GITHUB_ENV"
+
 
       - name: Run Helm e2e
         run: make e2e
