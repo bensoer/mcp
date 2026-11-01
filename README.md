@@ -75,12 +75,14 @@ IP change or pod replacement can still interrupt a session.
 
 ```bash
 make helm-lint  # lint and render the chart without a cluster
-make e2e        # start/reuse minikube and run the in-cluster acceptance suite
+make e2e        # recreate minikube and run the in-cluster acceptance suite
 make e2e-down   # remove the release and delete only a cluster started by make e2e
 ```
 
-`make e2e` leaves the cluster running. It reports how to tear down a profile
-that it started. The same target runs in GitHub Actions CI.
+`make e2e` deletes and recreates the selected minikube profile (`mcp` by
+default, or `MINIKUBE_PROFILE` when set) so every run starts from a clean
+cluster. It leaves the cluster running and reports how to tear it down. The
+same target runs in GitHub Actions CI.
 
 Published GitHub Releases carry both the container image and the packaged
 Helm chart `.tgz`.
