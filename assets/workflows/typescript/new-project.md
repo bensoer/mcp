@@ -1,26 +1,34 @@
 ---
 uri: workflows://typescript-new-project
 name: TypeScript New Project Workflow
-description: "Step-by-step workflow for scaffolding a new TypeScript service (Restify, Fastify, or NestJS) or an oclif CLI with pnpm, ESM, ESLint, Prettier, and Jest."
+description: "Use when scaffolding a new TypeScript service (Restify, Fastify, or NestJS) or an oclif CLI with pnpm, ESM, ESLint, Prettier, and Jest."
 languages:
     - typescript
 file_types:
     - "*.ts"
-    - "package.json"
+    - package.json
 priority: required
 related_resources:
-    - standards://typescript/architecture
-    - standards://typescript/syntax
-    - standards://typescript/tooling
-    - standards://typescript/testing
-    - standards://typescript/cli
-    - workflows://typescript-oclif-subcommand
+    - uri: standards://typescript/architecture
+      when: "layout, contracts, or wiring for the new project"
+    - uri: standards://typescript/syntax
+      when: "naming or language rules in the scaffold"
+    - uri: standards://typescript/tooling
+      when: "pnpm, ESLint, Prettier, Jest, or tsconfig in the scaffold"
+    - uri: standards://typescript/testing
+      when: "adding the first Jest tests"
+    - uri: standards://typescript/cli
+      when: "the new project is an oclif CLI"
+    - uri: workflows://typescript-oclif-subcommand
+      when: "adding the first command during scaffold"
 ---
 
 # TypeScript New Project Workflow
-Step-by-step workflow for scaffolding a new TypeScript service or CLI.
+Use when scaffolding a new TypeScript service (Restify, Fastify, or NestJS) or an oclif CLI with pnpm, ESM, ESLint, Prettier, and Jest.
 
-Use this for a **new** TypeScript service or CLI. Existing repositories keep their layout and tools. Follow `standards://typescript/architecture`, `standards://typescript/syntax`, `standards://typescript/tooling`, `standards://typescript/testing`, and `standards://typescript/cli`.
+Read this file. Read a related resource only when its `when` condition matches this step.
+
+Use this for a **new** TypeScript service or CLI. Existing repositories keep their layout and tools. Do not read every related resource up front.
 
 - ALWAYS confirm the project kind before writing files.
 - IF a slash command invoked this workflow, stay in Plan mode until the user approves.

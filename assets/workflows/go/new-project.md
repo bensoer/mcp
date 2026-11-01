@@ -1,27 +1,36 @@
 ---
 uri: workflows://go-new-project
 name: Go New Project Workflow
-description: "Step-by-step workflow for scaffolding a new Go module with cmd/<binary>/main.go, a composition container, Makefile output in bin/, and golangci-lint."
+description: "Use when scaffolding a new Go module. Covers cmd/<binary>/main.go, the composition container, Makefile output in bin/, and golangci-lint."
 languages:
     - go
 file_types:
     - "*.go"
-    - "Makefile"
+    - Makefile
 priority: required
 related_resources:
-    - standards://go/architecture
-    - standards://go/syntax
-    - standards://go/logging
-    - standards://go/tooling
-    - standards://go/cli
-    - standards://go/testing
-    - workflows://go-cobra-subcommand
+    - uri: standards://go/architecture
+      when: "layout, constructors, or container rules for the new module"
+    - uri: standards://go/syntax
+      when: "naming files and packages in the scaffold"
+    - uri: standards://go/logging
+      when: "adding the logger during scaffold"
+    - uri: standards://go/tooling
+      when: "Makefile, pre-commit, or lint config in the scaffold"
+    - uri: standards://go/cli
+      when: "the new module is a CLI"
+    - uri: standards://go/testing
+      when: "adding the first Go tests"
+    - uri: workflows://go-cobra-subcommand
+      when: "adding the first subcommand during scaffold"
 ---
 
 # Go New Project Workflow
-Step-by-step workflow for scaffolding a new Go module.
+Use when scaffolding a new Go module. Covers cmd/<binary>/main.go, the composition container, Makefile output in bin/, and golangci-lint.
 
-Use this for a **new** Go module. Existing repositories keep their layout. Follow `standards://go/architecture`, `standards://go/syntax`, `standards://go/logging`, `standards://go/tooling`, `standards://go/cli`, and `standards://go/testing`.
+Read this file. Read a related resource only when its `when` condition matches this step.
+
+Use this for a **new** Go module. Existing repositories keep their layout. Do not read every related resource up front.
 
 - ALWAYS confirm the module path and binary name before writing files.
 - IF a slash command invoked this workflow, stay in Plan mode until the user approves.
