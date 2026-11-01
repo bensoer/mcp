@@ -80,7 +80,6 @@ autoscaling:
   targetCPUUtilizationPercentage: 80
 
 tests:
-  enabled: true
   image:
     repository: mcp-e2e
     pullPolicy: Never
