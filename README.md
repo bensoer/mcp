@@ -103,8 +103,11 @@ make e2e-down   # remove the release and delete only a cluster started by make e
 
 `make e2e` deletes and recreates the selected minikube profile (`mcp` by
 default, or `MINIKUBE_PROFILE` when set) so every run starts from a clean
-cluster. It leaves the cluster running and reports how to tear it down. The
-same target runs in GitHub Actions CI.
+cluster. It runs the same MCP client workflow against an auth-off release and
+a separate authenticated release; the authenticated run additionally verifies
+registration, bearer enforcement, identity and remote-address rate limits, and
+that `/healthz` remains unlimited. It leaves the cluster running and reports
+how to tear it down. The same target runs in GitHub Actions CI.
 
 Published GitHub Releases carry both the container image and the packaged
 Helm chart `.tgz`.
