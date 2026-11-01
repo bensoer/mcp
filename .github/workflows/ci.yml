@@ -86,8 +86,8 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v4
 
-      - name: Run Helm manifest tests
-        run: make helm-unittest
+      - name: Run Helm unit tests and lint
+        run: make helm-lint
 
   e2e:
     name: Helm minikube e2e
