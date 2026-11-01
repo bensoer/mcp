@@ -1,0 +1,11 @@
+The MCP server is available inside the cluster at:
+
+  http://{{ include "mcp.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}
+
+Endpoints:
+  /healthz  HTTP health check
+  /mcp     Streamable HTTP MCP endpoint
+
+Autoscaling is {{ if .Values.autoscaling.enabled }}enabled{{ else }}disabled{{ end }}, with {{ .Values.autoscaling.minReplicas }} to {{ .Values.autoscaling.maxReplicas }} replicas.
+
+The Service uses {{ .Values.service.sessionAffinity }} session affinity for {{ .Values.service.sessionAffinityTimeoutSeconds }} seconds. Sessions are held in memory: affinity keeps a client on one pod while the client IP is stable, but it does not preserve sessions when the client IP changes or the pod is replaced.

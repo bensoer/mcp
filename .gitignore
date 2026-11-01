@@ -1,3 +1,4 @@
 ref/
 bin/
 coverage*.out
+.minikube-e2e-profile
