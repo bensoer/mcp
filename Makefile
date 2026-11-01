@@ -93,6 +93,13 @@ e2e: ## Run the minikube Helm and in-cluster e2e suite
 	kube rollout status deployment/mcp --namespace mcp --timeout=5m; \
 	READY=$$(kube get deployment mcp --namespace mcp -o jsonpath='{.status.readyReplicas}'); \
 	[ "$$READY" = "1" ] || { echo "expected 1 ready replica, got $$READY" >&2; exit 1; }; \
+	ENDPOINT=""; \
+	for attempt in {1..30}; do \
+		ENDPOINT=$$(kube get endpoints mcp --namespace mcp -o jsonpath='{.subsets[0].addresses[0].ip}'); \
+		[ -n "$$ENDPOINT" ] && break; \
+		sleep 1; \
+	done; \
+	[ -n "$$ENDPOINT" ] || { echo "service has no ready endpoints" >&2; exit 1; }; \
 	helm --kube-context "$$PROFILE" test mcp --namespace mcp --logs --timeout 10m; \
 	MIN=$$(kube get hpa mcp --namespace mcp -o jsonpath='{.spec.minReplicas}'); \
 	MAX=$$(kube get hpa mcp --namespace mcp -o jsonpath='{.spec.maxReplicas}'); \
