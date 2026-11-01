@@ -83,6 +83,30 @@ jobs:
           curl -fsS http://127.0.0.1:18080/healthz
           docker stop mcp-smoke
 
+  e2e:
+    name: Helm minikube e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start minikube
+        uses: medyagh/setup-minikube@v0.0.21
+        with:
+          driver: docker
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Record minikube profile
+        shell: bash
+        run: |
+          profile=$(minikube profile list | awk -F'|' '$8 ~ /(Running|OK)/ {gsub(/^ +| +$/, "", $2); print $2; exit}')
+          test -n "$profile"
+          echo "MINIKUBE_PROFILE=$profile" >> "$GITHUB_ENV"
+
+      - name: Run Helm e2e
+        run: make e2e
+
   harness:
     name: Resource harness (stdio end-to-end)
     runs-on: ubuntu-latest
