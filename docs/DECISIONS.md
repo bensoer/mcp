@@ -6,5 +6,6 @@
 - **`assets/` is payload**: standards for other languages are documents this server serves, not this repo's toolchain.
 - **Resource reads include frontmatter**: clients get URI metadata with the markdown body.
 - **`related_resources` is snake_case**: camelCase YAML keys are dropped.
+- **`related_resources` entries are `{uri, when}`**: a bare URI string does not parse. `when` is required and is the only condition for reading that resource.
 - **Interfaces live next to their consumer**: see `AssetsFinder` in `internal/utils/assets.go`.
 - **Commit checks go through Make**: pre-commit hooks call `make`, they do not call `go` directly.
