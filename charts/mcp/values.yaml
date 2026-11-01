@@ -2,9 +2,9 @@
 replicaCount: 1
 
 image:
-  repository: mcp
+  repository: ghcr.io/bensoer/mcp
   pullPolicy: IfNotPresent
-  tag: dev
+  tag: latest
 
 imagePullSecrets: []
 nameOverride: ""
