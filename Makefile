@@ -66,22 +66,28 @@ helm-lint: ## Lint and render the Helm chart
 e2e: ## Run the minikube Helm and in-cluster e2e suite
 	@set -euo pipefail; \
 	missing=; \
-	for tool in docker minikube helm kubectl; do \
+	for tool in docker minikube helm kubectl python3; do \
 		command -v "$$tool" >/dev/null 2>&1 || missing="$$missing $$tool"; \
 	done; \
 	if [ -n "$$missing" ]; then \
 		echo "make e2e requires:$$missing" >&2; \
 		exit 1; \
 	fi; \
+	profile_running() { \
+		minikube profile list -o json | python3 -c 'import json, sys; data = json.load(sys.stdin); profile = sys.argv[1]; sys.exit(0 if any(p.get("Name") == profile and p.get("Status") in ("Running", "OK") for p in data.get("valid", [])) else 1)' "$$1"; \
+	}; \
+	profile_exists() { \
+		minikube profile list -o json | python3 -c 'import json, sys; data = json.load(sys.stdin); profile = sys.argv[1]; sys.exit(0 if any(p.get("Name") == profile for p in data.get("valid", [])) else 1)' "$$1"; \
+	}; \
 	if [ -n "$${MINIKUBE_PROFILE:-}" ]; then \
 		PROFILE="$$MINIKUBE_PROFILE"; \
 	else \
-		PROFILE=$$(minikube profile list | awk -F'|' '$$8 ~ /(Running|OK)/ {gsub(/^ +| +$$/, "", $$2); print $$2; exit}'); \
+		PROFILE=$$(minikube profile list -o json | python3 -c 'import json, sys; data = json.load(sys.stdin); print(next((p["Name"] for p in data.get("valid", []) if p.get("Status") in ("Running", "OK")), ""))'); \
 		PROFILE="$${PROFILE:-mcp}"; \
 	fi; \
 	STARTED=0; \
-	if ! minikube profile list | awk -F'|' -v profile="$$PROFILE" '{gsub(/^ +| +$$/, "", $$2); if ($$2 == profile && $$8 ~ /(Running|OK)/) found=1} END {exit found ? 0 : 1}'; then \
-		if minikube profile list | awk -F'|' -v profile="$$PROFILE" '{gsub(/^ +| +$$/, "", $$2); if ($$2 == profile) found=1} END {exit found ? 0 : 1}'; then \
+	if ! profile_running "$$PROFILE"; then \
+		if profile_exists "$$PROFILE"; then \
 			minikube -p "$$PROFILE" start; \
 		else \
 			minikube -p "$$PROFILE" start --driver=docker; \

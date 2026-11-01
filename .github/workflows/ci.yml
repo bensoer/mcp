@@ -100,7 +100,7 @@ jobs:
       - name: Record minikube profile
         shell: bash
         run: |
-          profile=$(minikube profile list | awk -F'|' '$8 ~ /(Running|OK)/ {gsub(/^ +| +$/, "", $2); print $2; exit}')
+          profile=$(minikube profile list -o json | python3 -c 'import json, sys; data = json.load(sys.stdin); print(next((p["Name"] for p in data.get("valid", []) if p.get("Status") in ("Running", "OK")), ""))')
           test -n "$profile"
           echo "MINIKUBE_PROFILE=$profile" >> "$GITHUB_ENV"
 
