@@ -36,13 +36,7 @@ func TestMCPHTTPService(t *testing.T) {
 	t.Cleanup(cancel)
 
 	t.Run("healthz", func(t *testing.T) {
-		status, body := get(t, ctx, baseURL+"/healthz")
-		if status != http.StatusOK {
-			t.Fatalf("status = %d, want %d", status, http.StatusOK)
-		}
-		if body != "ok\n" {
-			t.Fatalf("body = %q, want %q", body, "ok\n")
-		}
+		waitForHealth(t, ctx, baseURL+"/healthz")
 	})
 
 	t.Run("root is not health endpoint", func(t *testing.T) {
@@ -253,20 +247,50 @@ func callTool(t *testing.T, ctx context.Context, session *mcp.ClientSession, nam
 	}
 }
 
+func waitForHealth(t *testing.T, ctx context.Context, url string) {
+	t.Helper()
+	deadline := time.Now().Add(30 * time.Second)
+	for {
+		status, body, err := request(ctx, url)
+		if err == nil && status == http.StatusOK && body == "ok\n" {
+			return
+		}
+		if time.Now().After(deadline) {
+			if err != nil {
+				t.Fatalf("GET %s did not become healthy: %v", url, err)
+			}
+			t.Fatalf("GET %s did not become healthy: status = %d, body = %q", url, status, body)
+		}
+		select {
+		case <-ctx.Done():
+			t.Fatalf("GET %s did not become healthy: %v", url, ctx.Err())
+		case <-time.After(250 * time.Millisecond):
+		}
+	}
+}
+
 func get(t *testing.T, ctx context.Context, url string) (int, string) {
 	t.Helper()
+	status, body, err := request(ctx, url)
+	if err != nil {
+		t.Fatalf("GET %s: %v", url, err)
+	}
+	return status, body
+}
+
+func request(ctx context.Context, url string) (int, string, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		t.Fatalf("create GET %s: %v", url, err)
+		return 0, "", fmt.Errorf("create GET %s: %w", url, err)
 	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		t.Fatalf("GET %s: %v", url, err)
+		return 0, "", err
 	}
 	defer func() { _ = resp.Body.Close() }()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		t.Fatalf("read GET %s: %v", url, err)
+		return 0, "", fmt.Errorf("read GET %s: %w", url, err)
 	}
-	return resp.StatusCode, string(body)
+	return resp.StatusCode, string(body), nil
 }
