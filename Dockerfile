@@ -8,8 +8,9 @@ RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/mcp ./c
 COPY test/e2e ./test/e2e
 RUN CGO_ENABLED=0 go test -c -tags e2e -o /out/e2e.test ./test/e2e
 
-FROM gcr.io/distroless/static-debian12:nonroot AS e2e
-COPY --from=build --chown=nonroot:nonroot --chmod=755 /out/e2e.test /e2e.test
+FROM debian:bookworm-slim AS e2e
+COPY --from=build --chown=65532:65532 --chmod=755 /out/e2e.test /e2e.test
+USER 65532:65532
 ENTRYPOINT ["/e2e.test", "-test.v"]
 
 FROM gcr.io/distroless/static-debian12:nonroot AS app
