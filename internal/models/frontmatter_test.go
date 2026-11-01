@@ -20,8 +20,10 @@ file_types:
   - "*.py"
 priority: required
 related_resources:
-  - standards://test/other
-  - standards://test/another
+  - uri: standards://test/other
+    when: the other standard applies
+  - uri: standards://test/another
+    when: the another standard applies
 ---
 # Body content
 `
@@ -50,8 +52,8 @@ related_resources:
 	if fm.Priority != "required" {
 		t.Errorf("Priority = %q, want %q", fm.Priority, "required")
 	}
-	if len(fm.RelatedResources) != 2 || fm.RelatedResources[0] != "standards://test/other" || fm.RelatedResources[1] != "standards://test/another" {
-		t.Errorf("RelatedResources = %v, want [standards://test/other standards://test/another]", fm.RelatedResources)
+	if len(fm.RelatedResources) != 2 || fm.RelatedResources[0].URI != "standards://test/other" || fm.RelatedResources[0].When != "the other standard applies" || fm.RelatedResources[1].URI != "standards://test/another" {
+		t.Errorf("RelatedResources = %+v, want uri/when objects", fm.RelatedResources)
 	}
 }
 
@@ -60,7 +62,8 @@ func TestFrontMatter_CamelCaseKeysAreDropped(t *testing.T) {
 relatedResources:
   - standards://test/camel
 related_resources:
-  - standards://test/snake
+  - uri: standards://test/snake
+    when: snake case is required
 ---
 `
 
@@ -73,8 +76,25 @@ related_resources:
 	if len(fm.RelatedResources) != 1 {
 		t.Fatalf("RelatedResources length = %d, want 1", len(fm.RelatedResources))
 	}
-	if fm.RelatedResources[0] != "standards://test/snake" {
-		t.Errorf("RelatedResources[0] = %q, want %q", fm.RelatedResources[0], "standards://test/snake")
+	if fm.RelatedResources[0].URI != "standards://test/snake" {
+		t.Errorf("RelatedResources[0].URI = %q, want %q", fm.RelatedResources[0].URI, "standards://test/snake")
+	}
+}
+
+func TestFrontMatter_StringRelatedResourcesDoNotParse(t *testing.T) {
+	input := `---
+uri: standards://test/example
+name: Test Example
+related_resources:
+  - standards://test/other
+---
+# Body
+`
+
+	var fm FrontMatter
+	_, err := frontmatter.Parse(strings.NewReader(input), &fm)
+	if err == nil {
+		t.Fatal("frontmatter.Parse() expected error for string related_resources, got nil")
 	}
 }
 

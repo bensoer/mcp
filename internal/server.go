@@ -48,6 +48,18 @@ func BootstrapServer(finder utils.AssetsFinder) (*mcp.Server, error) {
 			return nil, fmt.Errorf("asset %s has invalid uri format %q: must include scheme (e.g., standards://category/topic)", assetPath, metaData.URI)
 		}
 
+		for i, related := range metaData.RelatedResources {
+			if related.URI == "" {
+				return nil, fmt.Errorf("asset %s related_resources[%d] is missing required field: uri", assetPath, i)
+			}
+			if !strings.Contains(related.URI, "://") {
+				return nil, fmt.Errorf("asset %s related_resources[%d] has invalid uri format %q: must include scheme", assetPath, i, related.URI)
+			}
+			if related.When == "" {
+				return nil, fmt.Errorf("asset %s related_resources[%d] is missing required field: when", assetPath, i)
+			}
+		}
+
 		contentStr := string(contents)
 		server.AddResource(
 			&mcp.Resource{

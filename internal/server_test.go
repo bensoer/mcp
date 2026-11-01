@@ -117,6 +117,27 @@ uri: test://noname
 	}
 }
 
+func TestBootstrapServer_RelatedResourceMissingWhen(t *testing.T) {
+	mock := &mockAssetsFinder{
+		paths: []string{"bad.md"},
+		contents: map[string]string{
+			"bad.md": `---
+uri: test://bad
+name: Bad Related
+related_resources:
+  - uri: standards://git/branches
+---
+# Content
+`,
+		},
+	}
+
+	_, err := BootstrapServer(mock)
+	if err == nil {
+		t.Error("BootstrapServer() expected error for related resource missing when, got nil")
+	}
+}
+
 func TestBootstrapServer_InvalidYAML(t *testing.T) {
 	mock := &mockAssetsFinder{
 		paths: []string{"bad.md"},

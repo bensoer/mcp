@@ -64,7 +64,8 @@ file_types:
   - "*.*"
 priority: required
 related_resources:
-  - standards://git/commit-messages
+  - uri: standards://git/commit-messages
+    when: writing a commit message
 ---
 # %s
 
