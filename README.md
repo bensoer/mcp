@@ -4,7 +4,7 @@ Personal [Model Context Protocol](https://modelcontextprotocol.io) server. It se
 
 ## Prerequisites
 
-- Go 1.26.6+
+- Go 1.27.3+
 - GNU Make
 - Python 3 (resource harness, stdlib only)
 - pre-commit

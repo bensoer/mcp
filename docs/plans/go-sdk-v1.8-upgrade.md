@@ -21,7 +21,7 @@ Do not drop legacy clients. Pi 1.4.0 (`@earendil-works/pi-mcp`) only speaks thro
 | Module | `github.com/modelcontextprotocol/go-sdk` v1.6.1 | **v1.8.0** (latest stable on proxy.golang.org as of this plan; do not use a `-pre` tag) |
 | Newest spec the SDK negotiates | `2025-11-25` | `2026-07-28`, plus `2025-11-25`, `2025-06-18`, `2025-03-26`, `2024-11-05` |
 | HTTP | stateful streamable, `SessionTimeout: 30m` | **stateless** streamable. Required or HTTP cannot serve `2026-07-28` |
-| Go | `go 1.26.6` | unchanged |
+| Go | `go 1.26.6` | `go 1.27.3` |
 
 SDK facts, do not re-derive:
 
@@ -44,7 +44,7 @@ These are in use. A compile-green bump that drops one of them is a failure.
 - Tools, names and contracts unchanged: `discover_standards`, `discover_workflows`, `search_standards`, `search_workflows`. Registration still loops `tools.RegisterAll`. Search still matches URI, name, description, and body; tools still return metadata only.
 - Logger: stdio `DEVELOPMENT`, `-http` `PRODUCTION`, zap on stderr, no request-body logs, no stdout logs. `main` owns `zap.S().Fatalf`. Leave the commented `zap.S().Info` line in `cmd/main.go` alone.
 - Python harness (`.agents/skills/test-resource-document/scripts/test_resource.py`) stays on stdio `initialize` / `2024-11-05`. Do not rewrite it onto `2026-07-28`.
-- `go 1.26.6` directive. The `tool (` block in `go.mod` (golangci-lint, govulncheck) must survive `go mod tidy`.
+- `go 1.27.3` directive. The `tool (` block in `go.mod` (golangci-lint, govulncheck) must survive `go mod tidy`.
 
 Wire changes that are not feature loss, do not opt out:
 
@@ -157,7 +157,7 @@ Say what was verified (`make help` targets that were run, Python harness). Link 
 
 - Legacy `initialize` fails on stdio (Python harness) or on the new HTTP test.
 - Serving `2026-07-28` requires something other than `Stateless: true` (second port, auth, dropping a tool or resource field).
-- `go 1.26.6` cannot build v1.8.0.
+- `go 1.27.3` cannot build v1.8.0.
 - `go mod tidy` drops the `tool (` block.
 - A Makefile verification target fails and the fix is not a straight test or call-site update.
 - The worktree path already exists.
