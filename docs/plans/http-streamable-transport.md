@@ -22,7 +22,7 @@ SDK examples are not in this repo. They are in the module cache:
 
 `$(go env GOMODCACHE)/github.com/modelcontextprotocol/go-sdk@v1.6.1/mcp/streamable.go` (`StreamableHTTPOptions`)
 
-Pinned module: `github.com/modelcontextprotocol/go-sdk` v1.6.1. Do not bump it. `go.mod` says `go 1.26.6`. Local toolchain may be newer. Do not change `go.mod` or `go.sum`.
+Pinned module: `github.com/modelcontextprotocol/go-sdk` v1.6.1. Do not bump it. `go.mod` says `go 1.27.3`. Local toolchain may be newer. Do not change `go.mod` or `go.sum`.
 
 ## What to build
 
@@ -73,7 +73,7 @@ func newMCPHandler(server *mcp.Server) http.Handler {
 }
 ```
 
-Go 1.22+ method patterns are valid here (`go 1.26.6`). Do not add a router library.
+Go 1.22+ method patterns are valid here (`go 1.27.3`). Do not add a router library.
 
 HTTP branch, after bootstrap:
 
@@ -154,7 +154,7 @@ Root `Dockerfile` and `.dockerignore`.
 `.dockerignore` must ignore `.git`, `bin`, `ref`, `coverage.out`, `.pi`. It must not ignore `go.mod`, `go.sum`, `cmd/`, `internal/`, or `assets/`.
 
 ```dockerfile
-FROM golang:1.26.6-bookworm AS build
+FROM golang:1.27.3-bookworm AS build
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
@@ -171,7 +171,7 @@ ENTRYPOINT ["/mcp"]
 CMD ["-http", "0.0.0.0:8080"]
 ```
 
-If `golang:1.26.6-bookworm` does not exist, stop. Do not pick another Go version. The final image has no shell. Do not add `USER`, `HEALTHCHECK`, a package manager, or compose. The base image already runs as `nonroot`.
+If `golang:1.27.3-bookworm` does not exist, stop. Do not pick another Go version. The final image has no shell. Do not add `USER`, `HEALTHCHECK`, a package manager, or compose. The base image already runs as `nonroot`.
 
 `docker build -t mcp . && docker run --rm -p 8080:8080 mcp`
 

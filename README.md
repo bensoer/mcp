@@ -4,7 +4,7 @@ Personal [Model Context Protocol](https://modelcontextprotocol.io) server. It se
 
 ## Prerequisites
 
-- Go 1.26.6+
+- Go 1.27.3+
 - GNU Make
 - Python 3 (resource harness, stdlib only)
 - pre-commit
@@ -37,7 +37,7 @@ The binary is `./bin/mcp`. Run it from the repository root, or set `MCP_ASSET_RO
 
 ### Run over HTTP
 
-Streamable HTTP (MCP spec `2025-11-25`). No auth; TLS is outside the process.
+Streamable HTTP negotiates the newest supported MCP spec, `2026-07-28`; older clients still use `initialize` through `2025-11-25`. HTTP is stateless (no session id; `GET /mcp` is 405). No auth; TLS is outside the process.
 
 ```bash
 make run-http            # builds, then serves on http://127.0.0.1:8080/mcp

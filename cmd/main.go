@@ -25,7 +25,7 @@ func newMCPHandler(server *mcp.Server) http.Handler {
 	mcpHandler := mcp.NewStreamableHTTPHandler(func(*http.Request) *mcp.Server {
 		return server
 	}, &mcp.StreamableHTTPOptions{
-		SessionTimeout: 30 * time.Minute,
+		Stateless: true,
 	})
 	mux := http.NewServeMux()
 	mux.Handle("/mcp", mcpHandler)
