@@ -1,0 +1,23 @@
+suite: e2e test pod
+templates:
+  - tests/test-connection.yaml
+tests:
+  - it: runs the e2e client without authentication by default
+    asserts:
+      - equal:
+          path: spec.containers[0].env[1].name
+          value: MCP_E2E_AUTH_ENABLED
+      - equal:
+          path: spec.containers[0].env[1].value
+          value: "false"
+
+  - it: enables authenticated e2e client behavior with chart authentication
+    set:
+      auth.enabled: true
+    asserts:
+      - equal:
+          path: spec.containers[0].env[1].name
+          value: MCP_E2E_AUTH_ENABLED
+      - equal:
+          path: spec.containers[0].env[1].value
+          value: "true"

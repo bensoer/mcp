@@ -49,7 +49,7 @@ tests:
       - notExists:
           path: spec.template.spec.containers[0].volumeMounts
       - notExists:
-          path: spec.template.spec.fsGroup
+          path: spec.template.spec.securityContext.fsGroup
       - equal:
           path: spec.template.spec.containers[0].ports[0].containerPort
           value: 8080
@@ -93,7 +93,7 @@ tests:
           path: spec.replicas
           value: 1
       - equal:
-          path: spec.template.spec.fsGroup
+          path: spec.template.spec.securityContext.fsGroup
           value: 65532
       - equal:
           path: spec.template.spec.containers[0].args
