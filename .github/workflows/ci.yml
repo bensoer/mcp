@@ -2,10 +2,10 @@ name: CI
 
 # Runs the full validation gate from .agents/rules/validation.md
 # (fmt/fmt-check, typecheck, vet, test with -race, lint, vuln, coverage),
-# the pre-commit gate, the Python stdio end-to-end harness, and a Docker
-# build+smoke test. Jobs run in parallel. The Go gate uses the supported native
-# toolchain (1.27.3). Docker buildx layer caching keeps the image job fast on
-# repeat runs.
+# the pre-commit gate, Helm manifest unit tests, the Python stdio end-to-end
+# harness, and a Docker build+smoke test. Jobs run in parallel. The Go gate
+# uses the supported native toolchain (1.27.3). Docker buildx layer caching
+# keeps the image job fast on repeat runs.
 
 on:
   pull_request:
@@ -77,6 +77,18 @@ jobs:
           curl -fsS http://127.0.0.1:18080/healthz
           docker stop mcp-smoke
 
+  helm:
+    name: Helm manifest tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Run Helm manifest tests
+        run: make helm-unittest
+
   e2e:
     name: Helm minikube e2e
     runs-on: ubuntu-latest
@@ -93,9 +105,6 @@ jobs:
 
       - name: Install Helm
         uses: azure/setup-helm@v4
-
-      - name: Test Helm manifests
-        run: make helm-lint
 
       - name: Run Helm e2e
         run: make e2e
