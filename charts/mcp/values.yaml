@@ -55,6 +55,9 @@ ingress:
   tls: []
 
 traefik:
+  # Namespace that runs Traefik. The NetworkPolicy uses it only when the IngressRoute is enabled.
+  # Kubernetes sets kubernetes.io/metadata.name to the namespace name.
+  namespace: traefik
   ingressRoute:
     enabled: true
     domain: mcp.intra.soernet.ca

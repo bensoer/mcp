@@ -21,6 +21,7 @@ Autoscaling is {{ if .Values.autoscaling.enabled }}enabled{{ else }}disabled{{ e
 {{- if .Values.traefik.ingressRoute.enabled }}
 
 Traefik routes https://{{ .Values.traefik.ingressRoute.domain }} to this release. The certificate is issued by {{ .Values.traefik.ingressRoute.issuerKind }} {{ .Values.traefik.ingressRoute.issuer }}, and the cluster must already have cert-manager and Traefik CRDs installed.
+The NetworkPolicy allows TCP 8080 from the {{ .Values.traefik.namespace }} namespace so that route can reach the pod. Kubernetes must label that namespace kubernetes.io/metadata.name={{ .Values.traefik.namespace }}.
 {{- end }}
 
 The Service uses {{ .Values.service.sessionAffinity }} session affinity for {{ .Values.service.sessionAffinityTimeoutSeconds }} seconds. Sessions are held in memory: affinity keeps a client on one pod while the client IP is stable, but it does not preserve sessions when the client IP changes or the pod is replaced.
