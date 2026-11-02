@@ -1,0 +1,63 @@
+suite: network policy
+templates:
+  - networkpolicy.yaml
+tests:
+  - it: allows the release namespace and Traefik when the ingress route is enabled
+    asserts:
+      - isKind:
+          of: NetworkPolicy
+      - equal:
+          path: spec.policyTypes
+          value:
+            - Ingress
+            - Egress
+      - equal:
+          path: spec.ingress
+          value:
+            - from:
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: NAMESPACE
+              ports:
+                - protocol: TCP
+                  port: 8080
+            - from:
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: traefik
+              ports:
+                - protocol: TCP
+                  port: 8080
+      - equal:
+          path: spec.egress
+          value: []
+
+  - it: allows only the release namespace when the ingress route is disabled
+    set:
+      traefik.ingressRoute.enabled: false
+    asserts:
+      - equal:
+          path: spec.ingress
+          value:
+            - from:
+                - namespaceSelector:
+                    matchLabels:
+                      kubernetes.io/metadata.name: NAMESPACE
+              ports:
+                - protocol: TCP
+                  port: 8080
+
+  - it: uses the configured Traefik namespace
+    set:
+      traefik.namespace: edge
+    asserts:
+      - equal:
+          path: spec.ingress[1].from[0].namespaceSelector.matchLabels["kubernetes.io/metadata.name"]
+          value: edge
+
+  - it: fails when the ingress route is enabled without a Traefik namespace
+    set:
+      traefik.namespace: " "
+    asserts:
+      - failedTemplate:
+          errorMessage: traefik.namespace is required when traefik.ingressRoute.enabled is true
