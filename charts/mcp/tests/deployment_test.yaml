@@ -11,6 +11,8 @@ tests:
           value: RELEASE-NAME-helm-mcp
       - notExists:
           path: spec.replicas
+      - notExists:
+          path: spec.strategy
       - equal:
           path: spec.template.spec.automountServiceAccountToken
           value: false
@@ -92,6 +94,9 @@ tests:
       - equal:
           path: spec.replicas
           value: 1
+      - equal:
+          path: spec.strategy.type
+          value: Recreate
       - equal:
           path: spec.template.spec.securityContext.fsGroup
           value: 65532

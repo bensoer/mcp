@@ -3,8 +3,9 @@ package tools
 import (
 	"context"
 
-	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"mcp/internal/utils"
+
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
 const (
@@ -34,7 +35,11 @@ func searchStandards(
 ) (*mcp.CallToolResult, SearchStandardsOutput, error) {
 	matches, err := SearchMetadata(finder, in.Query, "standards://")
 	if err != nil {
-		return nil, SearchStandardsOutput{}, err
+		return nil, SearchStandardsOutput{
+			Query:     in.Query,
+			Resources: []ResourceMetadata{},
+			Total:     0,
+		}, err
 	}
 	return nil, SearchStandardsOutput{
 		Query:     in.Query,

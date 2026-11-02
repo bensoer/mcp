@@ -12,6 +12,7 @@ Authentication is {{ if .Values.auth.enabled }}enabled{{ else }}off{{ end }}.
 Authentication is enabled with one replica. API keys are stored on the release's PersistentVolumeClaim.
 Register a key with POST /register, then call /mcp with "Authorization: Bearer <apiKey>".
 The HorizontalPodAutoscaler must stay off because Bolt allows one process.
+Upgrades use Recreate so the old pod releases that lock before the new pod starts.
 {{- else }}
 
 Authentication is off unless auth.enabled is set. The server accepts /mcp requests without a bearer token.

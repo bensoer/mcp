@@ -3,6 +3,7 @@ package tools
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"testing"
 
 	"mcp/internal/utils"
@@ -173,6 +174,37 @@ func TestBootstrapServer_CallTool_SearchWorkflows_EmptyQuery(t *testing.T) {
 		unwrapToolResult(t, ctx, cs, "search_workflows", map[string]any{"query": ""}, &output)
 		t.Logf("search_workflows with empty query returned %d resources", output.Total)
 	})
+}
+
+func TestSearchStandards_AssetErrorReturnsQueryAndEmptyResources(t *testing.T) {
+	finder := &mockAssetsFinder{loadErr: errors.New("list failed")}
+	_, output, err := searchStandards(t.Context(), nil, SearchStandardsInput{Query: "commit"}, finder)
+	if err == nil {
+		t.Fatal("expected asset error")
+	}
+	assertEmptySearchOutput(t, output.Query, output.Resources, output.Total, "commit")
+}
+
+func TestSearchWorkflows_AssetErrorReturnsQueryAndEmptyResources(t *testing.T) {
+	finder := &mockAssetsFinder{loadErr: errors.New("list failed")}
+	_, output, err := searchWorkflows(t.Context(), nil, SearchWorkflowsInput{Query: "deploy"}, finder)
+	if err == nil {
+		t.Fatal("expected asset error")
+	}
+	assertEmptySearchOutput(t, output.Query, output.Resources, output.Total, "deploy")
+}
+
+func assertEmptySearchOutput(t *testing.T, query string, resources []ResourceMetadata, total int, wantQuery string) {
+	t.Helper()
+	if query != wantQuery {
+		t.Errorf("query = %q, want %q", query, wantQuery)
+	}
+	if resources == nil {
+		t.Fatal("resources is nil, want an empty slice")
+	}
+	if len(resources) != 0 || total != 0 {
+		t.Fatalf("resources = %d, total = %d, want 0 and 0", len(resources), total)
+	}
 }
 
 // TestRegisterAll smoke tests that all tools register without panic.
