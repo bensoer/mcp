@@ -12,6 +12,10 @@ metadata:
 spec:
   {{- if .Values.auth.enabled }}
   replicas: 1
+  # RollingUpdate would start the new pod while the old one still holds the Bolt
+  # lock on the RWO volume. The new process never listens, so probes fail.
+  strategy:
+    type: Recreate
   {{- else if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
