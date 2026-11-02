@@ -9,5 +9,5 @@
 - **`related_resources` entries are `{uri, when}`**: a bare URI string does not parse. `when` is required and is the only condition for reading that resource.
 - **Interfaces live next to their consumer**: see `AssetsFinder` in `internal/utils/assets.go`.
 - **Commit checks go through Make**: pre-commit hooks call `make`, they do not call `go` directly.
-- **Kubernetes deployment uses `charts/mcp`**: the HPA ranges from 1 to 3 replicas and the Service uses `ClientIP` affinity because sessions are in-memory; probes use `/healthz`, with no in-process TLS; release images publish to GitHub Container Registry and packaged charts attach to GitHub Releases.
+- **Kubernetes deployment uses `charts/mcp`**: the HPA ranges from 1 to 3 replicas and the Service uses `ClientIP` affinity because sessions are in-memory; probes use `/healthz`, with no in-process TLS; release images publish to `ghcr.io/bensoer/mcp` and Helm charts publish to `oci://ghcr.io/bensoer/mcp/helm-mcp`; the packaged chart is also attached to the GitHub Release.
 - **Chart authentication is opt-in**: `auth.enabled` uses the same `-auth <bolt-path>` path and defaults to off. When enabled, the chart runs one replica because Bolt's file lock is exclusive, stores the database on a claim, and disables the HPA. The default chart remains unauthenticated with the HPA enabled.

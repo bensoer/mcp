@@ -109,8 +109,10 @@ registration, bearer enforcement, identity and remote-address rate limits, and
 that `/healthz` remains unlimited. It leaves the cluster running and reports
 how to tear it down. The same target runs in GitHub Actions CI.
 
-Published GitHub Releases carry both the container image and the packaged
-Helm chart `.tgz`.
+Published GitHub Releases push the container image to `ghcr.io/bensoer/mcp`
+and the Helm chart to `oci://ghcr.io/bensoer/mcp/helm-mcp`. The chart name is
+`helm-mcp`, so it does not replace the `mcp` image in that registry. The
+packaged chart `.tgz` is also attached to the GitHub Release.
 
 ## Layout
 

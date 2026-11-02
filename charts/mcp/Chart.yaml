@@ -1,5 +1,5 @@
 apiVersion: v2
-name: mcp
+name: helm-mcp
 description: MCP standards and workflows server
 type: application
 version: 0.1.0

@@ -3,6 +3,8 @@ name: Release
 # Triggered when a GitHub Release is published. Builds the container image and
 # pushes it to GitHub Container Registry using the built-in GITHUB_TOKEN, then
 # attaches the packaged Helm chart to the same GitHub Release.
+# The chart is also pushed to oci://ghcr.io/bensoer/mcp/helm-mcp, beside the
+# container image ghcr.io/bensoer/mcp. Helm uses the Chart.yaml name, helm-mcp.
 
 on:
   release:
@@ -13,6 +15,7 @@ permissions:
 
 env:
   IMAGE: ghcr.io/bensoer/mcp
+  CHART_REGISTRY: ghcr.io/bensoer/mcp
 
 jobs:
   build-and-push:
@@ -65,11 +68,12 @@ jobs:
           echo "Digest: ${{ steps.build.outputs.digest }}"
 
   package-chart:
-    name: Package and attach Helm chart
+    name: Package and publish Helm chart
     needs: build-and-push
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      packages: write
     steps:
       - uses: actions/checkout@v4
 
@@ -96,11 +100,11 @@ jobs:
           # Package outside chart_dir. The EXIT trap deletes chart_dir at the
           # end of this step, before the upload step can read CHART_ASSET.
           helm package "$chart_dir/mcp" --version "$version" --app-version "$version" --destination "$RUNNER_TEMP"
-          asset="$RUNNER_TEMP/mcp-${version}.tgz"
+          asset="$RUNNER_TEMP/helm-mcp-${version}.tgz"
           test -f "$asset"
           echo "CHART_ASSET=$asset" >> "$GITHUB_ENV"
 
-      - name: Attach chart to GitHub Release
+      - name: Push chart to GHCR and attach it to the release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -109,4 +113,6 @@ jobs:
             echo "chart asset is missing: ${CHART_ASSET:-<unset>}" >&2
             exit 1
           fi
+          echo "$GH_TOKEN" | helm registry login ghcr.io --username "${{ github.actor }}" --password-stdin
+          helm push "$CHART_ASSET" "oci://${CHART_REGISTRY}"
           gh release upload "$GITHUB_REF_NAME" "$CHART_ASSET"

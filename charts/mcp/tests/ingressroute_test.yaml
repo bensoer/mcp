@@ -18,7 +18,7 @@ tests:
           value: traefik.io/v1alpha1
       - equal:
           path: metadata.name
-          value: RELEASE-NAME-mcp-ingress-route
+          value: RELEASE-NAME-helm-mcp-ingress-route
       - equal:
           path: spec.entryPoints[0]
           value: websecure
@@ -27,7 +27,7 @@ tests:
           value: Host(`mcp.intra.soernet.ca`) && PathPrefix(`/`)
       - equal:
           path: spec.routes[0].services[0].name
-          value: RELEASE-NAME-mcp
+          value: RELEASE-NAME-helm-mcp
       - equal:
           path: spec.routes[0].services[0].port
           value: 8080
@@ -36,7 +36,7 @@ tests:
           value: http
       - equal:
           path: spec.tls.secretName
-          value: RELEASE-NAME-mcp-cert
+          value: RELEASE-NAME-helm-mcp-cert
 
   - it: targets the configured service port
     set:
