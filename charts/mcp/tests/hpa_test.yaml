@@ -8,13 +8,13 @@ tests:
           of: HorizontalPodAutoscaler
       - equal:
           path: metadata.name
-          value: RELEASE-NAME-mcp
+          value: RELEASE-NAME-helm-mcp
       - equal:
           path: spec.scaleTargetRef.kind
           value: Deployment
       - equal:
           path: spec.scaleTargetRef.name
-          value: RELEASE-NAME-mcp
+          value: RELEASE-NAME-helm-mcp
       - equal:
           path: spec.minReplicas
           value: 1
