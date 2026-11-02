@@ -71,7 +71,7 @@ helm-lint: helm-unittest ## Lint, unit test, and render the Helm chart
 	helm lint --strict charts/mcp
 	@tmp=$$(mktemp); \
 	trap 'rm -f "$$tmp"' EXIT; \
-	helm template mcp charts/mcp > "$$tmp"
+	helm template helm-mcp charts/mcp > "$$tmp"
 
 e2e: ## Run the minikube Helm and in-cluster e2e suite
 	@set -euo pipefail; \
@@ -96,26 +96,26 @@ e2e: ## Run the minikube Helm and in-cluster e2e suite
 		(eval "$$(minikube -p "$$PROFILE" docker-env --shell=bash)"; docker build -t mcp:dev .; docker build --target e2e -t mcp-e2e:dev .); \
 	fi; \
 	minikube -p "$$PROFILE" update-context; \
-	helm --kube-context "$$PROFILE" upgrade --install mcp charts/mcp --namespace mcp --create-namespace --wait --timeout 5m \
+	helm --kube-context "$$PROFILE" upgrade --install helm-mcp charts/mcp --namespace mcp --create-namespace --wait --timeout 5m \
 		--set image.repository=mcp --set image.tag=dev --set image.pullPolicy=Never \
 		--set tests.image.repository=mcp-e2e --set tests.image.tag=dev --set tests.image.pullPolicy=Never \
 		--set traefik.ingressRoute.enabled=false; \
-	kube rollout status deployment/mcp --namespace mcp --timeout=5m; \
+	kube rollout status deployment/helm-mcp --namespace mcp --timeout=5m; \
 	ENDPOINT=""; \
 	for attempt in {1..30}; do \
-		ENDPOINT=$$(kube get endpoints mcp --namespace mcp -o jsonpath='{.subsets[0].addresses[0].ip}'); \
+		ENDPOINT=$$(kube get endpoints helm-mcp --namespace mcp -o jsonpath='{.subsets[0].addresses[0].ip}'); \
 		[ -n "$$ENDPOINT" ] && break; \
 		sleep 1; \
 	done; \
 	[ -n "$$ENDPOINT" ] || { echo "service has no ready endpoints" >&2; exit 1; }; \
-	helm --kube-context "$$PROFILE" test mcp --namespace mcp --logs --timeout 10m; \
-	helm --kube-context "$$PROFILE" upgrade --install mcp-auth charts/mcp --namespace mcp-auth --create-namespace --wait --timeout 5m \
+	helm --kube-context "$$PROFILE" test helm-mcp --namespace mcp --logs --timeout 10m; \
+	helm --kube-context "$$PROFILE" upgrade --install helm-mcp-auth charts/mcp --namespace mcp-auth --create-namespace --wait --timeout 5m \
 		--set image.repository=mcp --set image.tag=dev --set image.pullPolicy=Never \
 		--set tests.image.repository=mcp-e2e --set tests.image.tag=dev --set tests.image.pullPolicy=Never \
 		--set auth.enabled=true --set autoscaling.enabled=false --set replicaCount=1 \
 		--set traefik.ingressRoute.enabled=false; \
-	kube rollout status deployment/mcp-auth --namespace mcp-auth --timeout=5m; \
-	helm --kube-context "$$PROFILE" test mcp-auth --namespace mcp-auth --logs --timeout 10m; \
+	kube rollout status deployment/helm-mcp-auth --namespace mcp-auth --timeout=5m; \
+	helm --kube-context "$$PROFILE" test helm-mcp-auth --namespace mcp-auth --logs --timeout 10m; \
 	echo "e2e passed for minikube profile $$PROFILE"; \
 	echo "This command created a clean profile $$PROFILE; tear it down with: make e2e-down"
 
@@ -128,13 +128,13 @@ e2e-down: ## Remove the e2e release and cluster started by make e2e
 		PROFILE="$$MINIKUBE_PROFILE"; \
 	fi; \
 	if [ -n "$$PROFILE" ]; then \
-		helm --kube-context "$$PROFILE" uninstall mcp --namespace mcp --ignore-not-found || true; \
-		helm --kube-context "$$PROFILE" uninstall mcp-auth --namespace mcp-auth --ignore-not-found || true; \
+		helm --kube-context "$$PROFILE" uninstall helm-mcp --namespace mcp --ignore-not-found || true; \
+		helm --kube-context "$$PROFILE" uninstall helm-mcp-auth --namespace mcp-auth --ignore-not-found || true; \
 		minikube -p "$$PROFILE" kubectl -- delete namespace mcp --ignore-not-found || true; \
 		minikube -p "$$PROFILE" kubectl -- delete namespace mcp-auth --ignore-not-found || true; \
 	else \
-		helm uninstall mcp --namespace mcp --ignore-not-found || true; \
-		helm uninstall mcp-auth --namespace mcp-auth --ignore-not-found || true; \
+		helm uninstall helm-mcp --namespace mcp --ignore-not-found || true; \
+		helm uninstall helm-mcp-auth --namespace mcp-auth --ignore-not-found || true; \
 		kubectl delete namespace mcp --ignore-not-found || true; \
 		kubectl delete namespace mcp-auth --ignore-not-found || true; \
 	fi; \
