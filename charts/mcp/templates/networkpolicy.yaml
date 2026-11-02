@@ -20,4 +20,17 @@ spec:
       ports:
         - protocol: TCP
           port: 8080
+    {{- if .Values.traefik.ingressRoute.enabled }}
+    {{- $traefikNamespace := .Values.traefik.namespace | default "" | toString | trim }}
+    {{- if not $traefikNamespace }}
+    {{- fail "traefik.namespace is required when traefik.ingressRoute.enabled is true" }}
+    {{- end }}
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ $traefikNamespace }}
+      ports:
+        - protocol: TCP
+          port: 8080
+    {{- end }}
   egress: []
